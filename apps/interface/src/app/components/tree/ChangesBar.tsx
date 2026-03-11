@@ -94,13 +94,21 @@ export function ChangesBar() {
 
               // Collect nodes the connected wallet is NOT owner/manager of
               const notOwned: string[] = []
-              for (const [nodeName] of pendingMutations.entries()) {
-                const node = findNode(nodeName)
-                // If node is absent from sourceTree (e.g. pending creation) treat it as
-                // unauthorized — there is no owner record to verify against.
-                const nodeOwner = node?.owner?.toLowerCase()
-                if (!nodeOwner || connectedAddress !== nodeOwner) {
-                  notOwned.push(nodeName)
+              for (const [nodeName, mutation] of pendingMutations.entries()) {
+                if (mutation.createNode && mutation.parentName) {
+                  // For creations: must be owner/manager of the parent
+                  const parent = findNode(mutation.parentName)
+                  const parentOwner = parent?.owner?.toLowerCase()
+                  if (!parentOwner || connectedAddress !== parentOwner) {
+                    notOwned.push(nodeName)
+                  }
+                } else {
+                  // For edits: must be owner/manager of the node itself
+                  const node = findNode(nodeName)
+                  const nodeOwner = node?.owner?.toLowerCase()
+                  if (!nodeOwner || connectedAddress !== nodeOwner) {
+                    notOwned.push(nodeName)
+                  }
                 }
               }
 

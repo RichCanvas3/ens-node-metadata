@@ -1,10 +1,8 @@
 import { GraphQLClient, type RequestDocument, gql } from 'graphql-request'
 import type { NormalizedTreeNode, TreeNode } from '@/lib/tree/types'
-import { fetchTexts } from './fetchTexts'
+import { ensSubgraphUrl } from '@/lib/chain'
+import { fetchTexts, fetchResolvedAddress } from './fetchTexts'
 import { mapNamesByAddress, type ENSDataByAddress } from './mapNamesByAddress'
-
-
-const ENS_SUBGRAPH_URL = 'https://api.alpha.ensnode.io/subgraph'
 
 type ENSRecord = {
   id: string
@@ -112,7 +110,7 @@ function assignEnsData(
 }
 
 export async function buildRawTree(rootName: string,): Promise<TreeNode | undefined> {
-  const endpoint = ENS_SUBGRAPH_URL
+  const endpoint = ensSubgraphUrl
   const request = withRetry(createGraphRequest(endpoint))
   const pageSize = 1000
 
@@ -153,6 +151,12 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
       isWrapped: !!indexed.wrappedOwnerId && indexed.wrappedOwnerId !== ZERO_ADDRESS,
     }
 
+    // If subgraph has no resolved address, fetch from RPC (subgraph can be missing/stale)
+    if (indexed.name && (!resolvedAddress || resolvedAddress === ZERO_ADDRESS)) {
+      const rpcAddress = await fetchResolvedAddress(indexed.name)
+      if (rpcAddress) node.address = rpcAddress
+    }
+
     // If the resolver has texts, fetch them and add them to the node
     if (indexed.name && indexed.resolver.texts) {
       try {
@@ -168,6 +172,7 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
     const subdomainCount = Number(indexed.subdomainCount ?? 0)
     if (subdomainCount > 0) {
       const children = await paginateChildren(request, indexed.id, pageSize)
+      const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
       for await (const child of children) {
         const childNode = await buildNode(child)
@@ -175,6 +180,7 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
           childNode.parentId = indexed.id
           node.children?.push(childNode)
         }
+        if (children.length > 1) await delay(40)
       }
     }
 

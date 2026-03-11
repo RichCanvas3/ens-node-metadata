@@ -70,7 +70,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     }
   }, [isOpen, sourceTree, suggestionId, schemas, resetEditor, setCurrentSchema])
 
-  if (!sourceTree || !previewTree) return null
+  const treeReady = Boolean(sourceTree && previewTree)
 
   // Build flat list of all nodes for parent combobox
   const collectAllNodes = (node: TreeNode): { name: string; depth: number }[] => {
@@ -83,7 +83,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     return result
   }
 
-  const availableParents = collectAllNodes(previewTree)
+  const availableParents = treeReady ? collectAllNodes(previewTree!) : []
   const filteredParents = availableParents.filter((p) =>
     p.name.toLowerCase().includes(parentSearch.toLowerCase()),
   )
@@ -122,7 +122,8 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     )
 
     queueCreation(selectedParent, augmentedNodes)
-    handleClose()
+    onClose()
+    resetEditor()
   }
 
   // Called by onOpenChange (click outside, Escape) - ignores close if changes exist
@@ -183,6 +184,14 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
               </Drawer.Description>
             </div>
 
+            {!treeReady ? (
+              <div className="flex-1 flex items-center justify-center text-center px-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Load a domain first and wait for the tree to load, then try again.
+                </p>
+              </div>
+            ) : (
+            <>
             {/* Form */}
             <div className="flex-1 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {/* Parent Node Combobox */}
@@ -294,6 +303,8 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
                 Create Node
               </button>
             </div>
+            </>
+            )}
           </div>
         </Drawer.Content>
       </Drawer.Portal>

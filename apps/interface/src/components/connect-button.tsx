@@ -16,10 +16,13 @@ interface Props {
   variant?: 'default' | 'minimal'
 }
 
-const EXPECTED_CHAIN_ID = 'eip155:1' // Ethereum Mainnet
+import { chainId as appChainId } from '@/lib/chain'
+
+const EXPECTED_CHAIN_ID = `eip155:${appChainId}`
 
 const networkNames: Record<string, string> = {
   'eip155:1': 'Ethereum',
+  'eip155:11155111': 'Sepolia',
   'eip155:84532': 'Base Sepolia',
   'eip155:8453': 'Base',
   'eip155:42161': 'Arbitrum',
@@ -57,10 +60,10 @@ export const ConnectButton: React.FC<Props> = ({
     if (isWrongNetwork && wallets.length > 0) {
       try {
         // Use Privy's switchChain method
-        await wallets[0].switchChain(1) // Ethereum Mainnet chain ID
+        await wallets[0].switchChain(appChainId)
       } catch (error) {
         console.error('Failed to switch network:', error)
-        alert('Please switch to Ethereum Mainnet in your wallet')
+        alert(`Please switch to the correct network (chain ID ${appChainId}) in your wallet`)
       }
     }
   }

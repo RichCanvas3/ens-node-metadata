@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { GraphQLClient } from 'graphql-request'
 import { toast } from 'sonner'
 
+import { ensSubgraphUrl } from '@/lib/chain'
 import { resolveApiError } from '@/lib/api/utils/resolveApiError'
 
 interface ApiState {
@@ -18,7 +19,7 @@ interface ApiState {
 export const useApiStore = create<ApiState>((set, get) => ({
   client: new GraphQLClient('NOT_IMPLEMENTED/graphql'),
 
-  ensSubgraph: new GraphQLClient('https://api.alpha.ensnode.io/subgraph'),
+  ensSubgraph: new GraphQLClient(ensSubgraphUrl),
 
   ensRequest: async <T>(query: string, variables = {}): Promise<T> => {
     try {

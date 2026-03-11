@@ -6,6 +6,7 @@ import type { TreeNode } from '@/lib/tree/types'
 import { NodeContainer } from './NodeContainer'
 import { UserCheck, Sparkles } from 'lucide-react'
 import { shortAddress } from '@/lib/shortAddress'
+import { chainId } from '@/lib/chain'
 import { resolveLink } from '@/lib/links'
 import { NodeIcon } from './NodeIcon'
 import { ExternalActionButton } from './ExternalActionButton'
@@ -53,7 +54,7 @@ const SignerNodeCard = ({
   const isPendingCreation = node.isPendingCreation || false
 
   // Resolve the appropriate link for this node
-  const link = resolveLink(node)
+  const link = resolveLink(node, chainId)
 
   return (
     <NodeContainer

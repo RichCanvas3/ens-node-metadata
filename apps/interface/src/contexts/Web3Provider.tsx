@@ -1,13 +1,10 @@
 'use client'
 
 import { PrivyProvider, usePrivy, useWallets } from '@privy-io/react-auth'
-import { mainnet } from 'viem/chains'
-import { addEnsContracts } from '@ensdomains/ensjs'
+import { chain } from '@/lib/chain'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { createPublicClient, http, WalletClient, createWalletClient, custom } from 'viem'
 import { useAppStore } from '@/stores/app'
-
-const chain = addEnsContracts(mainnet)
 
 // Create shared public client instance
 const publicClient = createPublicClient({

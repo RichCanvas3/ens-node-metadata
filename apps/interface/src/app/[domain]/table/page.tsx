@@ -673,11 +673,19 @@ export default function TablePage() {
                   if (!connectedAddress) return
 
                   const notOwned: string[] = []
-                  for (const [nodeName] of pendingMutations.entries()) {
-                    const node = findNode(nodeName)
-                    const nodeOwner = node?.owner?.toLowerCase()
-                    if (!nodeOwner || connectedAddress !== nodeOwner) {
-                      notOwned.push(nodeName)
+                  for (const [nodeName, mutation] of pendingMutations.entries()) {
+                    if (mutation.createNode && mutation.parentName) {
+                      const parent = findNode(mutation.parentName)
+                      const parentOwner = parent?.owner?.toLowerCase()
+                      if (!parentOwner || connectedAddress !== parentOwner) {
+                        notOwned.push(nodeName)
+                      }
+                    } else {
+                      const node = findNode(nodeName)
+                      const nodeOwner = node?.owner?.toLowerCase()
+                      if (!nodeOwner || connectedAddress !== nodeOwner) {
+                        notOwned.push(nodeName)
+                      }
                     }
                   }
 

@@ -12,6 +12,17 @@ export NEXT_PUBLIC_RPC_URL=<MAINNET_RPC>
 export DUNE_API_KEY=
 ```
 
+To use **Sepolia** instead of mainnet, set:
+
+```sh
+export NEXT_PUBLIC_CHAIN_ID=11155111
+export NEXT_PUBLIC_RPC_URL=https://rpc.sepolia.org
+```
+
+The app will use the ENS Sepolia subgraph (`api.alpha-sepolia.ensnode.io`) for tree data when `NEXT_PUBLIC_CHAIN_ID=11155111`. You can override the subgraph with `NEXT_PUBLIC_ENS_SUBGRAPH_URL` if needed.
+
+(Omitting `NEXT_PUBLIC_CHAIN_ID` or setting it to `1` uses Ethereum mainnet.)
+
 ## Getting Started
 
 ```bash

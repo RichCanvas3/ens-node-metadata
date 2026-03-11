@@ -5,6 +5,7 @@ import type { WalletClient } from 'viem'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
 import { useTxnsStore } from './txns'
+import { useTreeLoaderStore } from './tree-loader'
 
 const asEnsWalletClient = (walletClient: WalletClient): ClientWithAccount =>
   walletClient as unknown as ClientWithAccount
@@ -227,8 +228,13 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
 
     const { addTxn, watchTxn } = useTxnsStore.getState()
 
+    // ensjs requires full name (e.g. "treasury.richcanvas.eth"); single-label "treasury" is treated as "tld" and throws
+    const fullName = nodeName.includes('.')
+      ? nodeName
+      : `${nodeName}.${parentNode.name}`
+
     const hash = await createSubname(asEnsWalletClient(walletClient), {
-      name: nodeName,
+      name: fullName,
       owner: walletClient.account.address as `0x${string}`,
       contract: parentNode.isWrapped ? 'nameWrapper' : 'registry',
       account: walletClient.account,
@@ -236,12 +242,14 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
 
     addTxn({ hash, type: 'createSubname', label: nodeName })
 
-    // Watch in background — discard the pending creation after 2 confirmations
+    // Watch in background — discard the pending creation and refresh tree after confirmations
     watchTxn(hash, publicClient).then(() => {
       const { txns } = useTxnsStore.getState()
       const txn = txns.find((t) => t.hash === hash)
       if (txn?.status === 'confirmed') {
         useTreeEditStore.getState().discardPendingMutation(nodeName)
+        const { refreshTree, treeRootName } = useTreeLoaderStore.getState()
+        if (treeRootName) void refreshTree(treeRootName)
       }
     })
 

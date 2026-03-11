@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicClient, http } from 'viem'
-import { mainnet } from 'viem/chains'
+import { chain } from '@/lib/chain'
 
 const SAFE_ABI = [
   {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL!
 
     const client = createPublicClient({
-      chain: mainnet,
+      chain,
       transport: http(rpcUrl),
     })
 
