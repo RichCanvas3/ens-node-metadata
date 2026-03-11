@@ -1,7 +1,6 @@
 /**
- * Resolution layer: map ENS node text records (sem:type, sem:schema, or legacy class/schema)
- * to display class and schema URI for UI and validation.
- * Rule: prefer sem:schema if present; otherwise resolve schema from sem:type (defaultSchema).
+ * Resolution layer: map ENS node text records (sem:type, sem:schema) to display class and schema URI.
+ * Ontology-only: no legacy class/schema fallback. Rule: prefer sem:schema if present; else schema from sem:type.
  */
 
 import resolutionTable from './generated/resolution-table.json' with { type: 'json' }
@@ -53,17 +52,13 @@ export function getSchemaUriFromNode(node: NodeLike): string | undefined {
 
 /**
  * Get the display class label for the node (for badges, config lookup).
- * Uses sem:type → concept prefLabel when present; otherwise legacy class string.
+ * Resolves from sem:type only.
  */
 export function getDisplayClass(node: NodeLike): string | undefined {
   const typeUri = getTypeUri(node)
-  if (typeUri) {
-    const entry = byTypeUri[typeUri]
-    if (entry?.displayClass) return entry.displayClass
-  }
-  const legacy = node?.texts?.class ?? node?.class
-  if (legacy && typeof legacy === 'string') return legacy
-  return undefined
+  if (!typeUri) return undefined
+  const entry = byTypeUri[typeUri]
+  return entry?.displayClass
 }
 
 /**
@@ -105,28 +100,13 @@ export function getSchemaVersionForDisplayClass(displayClass: string): string | 
 
 /**
  * Get the JSON Schema URI for the node (for validation / schema fetch).
- * Prefer sem:schema if present; otherwise derive from sem:type (defaultSchema) or legacy class.
+ * Prefer sem:schema if present; otherwise from sem:type (defaultSchema).
  */
 export function getSchemaUriForNode(node: NodeLike): string | undefined {
   const explicitSchema = getSchemaUriFromNode(node)
   if (explicitSchema) return explicitSchema
-
   const typeUri = getTypeUri(node)
-  if (typeUri) {
-    const entry = byTypeUri[typeUri]
-    if (entry?.defaultSchemaUri) return entry.defaultSchemaUri
-  }
-
-  const legacySchema = node?.texts?.schema
-  if (legacySchema && typeof legacySchema === 'string') return legacySchema
-
-  const legacyClass = node?.texts?.class ?? node?.class
-  if (legacyClass && typeof legacyClass === 'string') {
-    const typeFromLegacy = legacyClassToTypeUri[legacyClass]
-    if (typeFromLegacy) {
-      const entry = byTypeUri[typeFromLegacy]
-      if (entry?.defaultSchemaUri) return entry.defaultSchemaUri
-    }
-  }
-  return undefined
+  if (!typeUri) return undefined
+  const entry = byTypeUri[typeUri]
+  return entry?.defaultSchemaUri
 }
