@@ -43,24 +43,18 @@ Published artifacts are written to `packages/schemas/published/`:
 
 ```sh
 published/
-  _latest.json              # Map of schemaId → latest { version, cid, checksum, timestamp, signer, signature, eip712 }
-  _registry.json            # Full registry across all published versions
+  _latest.json              # Map of schemaId → { version }
+  _registry.json            # Full registry (ontology/taxonomy + schemas with schemaPath per version)
   {schemaId}/
     versions/{version}/
-      schema.json           # Exported schema
-      checksum.sha256
-      cid.txt
-      meta.json             # Signer, signature, and EIP-712 payload
-    runs/ipfs/
-      run-<unix>.json       # Append-only signed publish log
-      run-latest.json
-    index.json              # Per-schema version list with latest pointer
+      schema.json           # Exported schema (only file needed for ontology loader)
+    index.json              # Per-schema version list: schemaId, latest, published[{ version, schemaPath }]
 ```
 
 ## Behavior
 
 - Publishing is **idempotent by version** — if `{schemaId}@{version}` has already been published, the command will refuse to overwrite it.
-- All schemas are **EIP-712 signed**. Inspect any `run-*.json` file to verify a publish.
+- No IPFS or checksum/signing; the app and resolution use ontology-based schema URLs only.
 
 ## Contributing
 

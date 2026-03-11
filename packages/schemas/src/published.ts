@@ -1,11 +1,14 @@
 import registry from '../published/_registry.json'
 
 export interface PublishedVersionEntry {
-  cid: string
-  checksum: string
-  timestamp: number
   schemaPath: string
   schema?: any
+  /** @deprecated legacy IPFS; not written by publish scripts */
+  cid?: string
+  /** @deprecated legacy; not written by publish scripts */
+  checksum?: string
+  /** @deprecated legacy; not written by publish scripts */
+  timestamp?: number
   meta?: any
 }
 
@@ -36,16 +39,12 @@ export async function getPublishedRegistry(): Promise<PublishedRegistry> {
 
     for (const [version, versionData] of Object.entries(schemaData.published)) {
       try {
-        // Dynamically import schema and meta files
-        const [schemaModule, metaModule] = await Promise.all([
-          import(`../published/${schemaId}/versions/${version}/schema.json`),
-          import(`../published/${schemaId}/versions/${version}/meta.json`),
-        ])
-
+        const schemaModule = await import(
+          `../published/${schemaId}/versions/${version}/schema.json`
+        )
         enhancedRegistry.schemas[schemaId].published[version] = {
           ...versionData,
           schema: schemaModule.default || schemaModule,
-          meta: metaModule.default || metaModule,
         }
       } catch (error) {
         console.error(`Failed to load schema ${schemaId} v${version}:`, error)

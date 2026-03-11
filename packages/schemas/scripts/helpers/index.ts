@@ -89,9 +89,9 @@ export function writeJson(filePath: string, data: unknown) {
   fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
-export function upsertPublished(
-  entries: Array<{ version: string }>,
-  next: { version: string },
+export function upsertPublished<T extends { version: string }>(
+  entries: T[],
+  next: T,
 ) {
   const existing = entries.findIndex((item) => item.version === next.version);
   if (existing >= 0) {

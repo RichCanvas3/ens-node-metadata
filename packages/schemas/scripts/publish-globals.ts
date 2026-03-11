@@ -4,18 +4,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   arg,
-  hasFlag,
   bumpVersion,
   loadSchema,
-  hashSha256,
   readJson,
   writeJson,
   upsertPublished,
   toRepoPath,
-  publishFile,
-  buildEip712,
-  maybeSign,
-  type PublishedSchema,
 } from "./helpers/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,16 +25,6 @@ const usage = () => {
       "Usage: pnpm --filter @ens-node-metadata/schemas publish:globals [--bump patch|minor|major|x.y.z]",
       "Options:",
       "  --bump, -b      Semver bump (patch|minor|major) or explicit version (optional)",
-      "  --notes         Short note for run log",
-      "  --provider      Publish provider: pinata|ipfs (default: auto)",
-      "  --ipfs-cmd      IPFS publish command (default: \"ipfs add -q\")",
-      "  --pinata-jwt    Pinata JWT (or PINATA_JWT)",
-      "  --pinata-key    Pinata API key (or PINATA_API_KEY)",
-      "  --pinata-secret Pinata API secret (or PINATA_API_SECRET)",
-      "  --private-key  Hex private key for EIP-712 signing (or SCHEMA_PUBLISHER_PRIVATE_KEY)",
-      "  --chain-id     Optional chain id for EIP-712 domain",
-      "  --allow-unsigned  Allow publish without signature",
-      "  --dry-run       Skip IPFS publish and write files with cid placeholder",
     ].join("\n"),
   );
 };
@@ -48,37 +32,8 @@ const usage = () => {
 const schemaId = "globals";
 const bumpRaw = arg(args, "--bump", "-b");
 const bumpFlagUsed = args.includes("--bump") || args.includes("-b");
-const notes = arg(args, "--notes");
-const ipfsCmd = arg(args, "--ipfs-cmd") ?? process.env.IPFS_CMD ?? "ipfs add -q";
-const dryRun = hasFlag(args, "--dry-run");
-const allowUnsigned = hasFlag(args, "--allow-unsigned");
-const privateKey =
-  arg(args, "--private-key") ?? process.env.SCHEMA_PUBLISHER_PRIVATE_KEY;
-const chainIdRaw = arg(args, "--chain-id") ?? process.env.SCHEMA_PUBLISHER_CHAIN_ID;
-const chainId = chainIdRaw ? Number(chainIdRaw) : undefined;
 if (bumpFlagUsed && !bumpRaw) {
   console.error("Missing --bump value. Use patch|minor|major or x.y.z.");
-  process.exit(1);
-}
-
-if (!privateKey && !allowUnsigned) {
-  console.error(
-    "Missing signing key. Provide --private-key or SCHEMA_PUBLISHER_PRIVATE_KEY (or use --allow-unsigned).",
-  );
-  process.exit(1);
-}
-
-const pinataJwt = arg(args, "--pinata-jwt") ?? process.env.PINATA_JWT;
-const pinataKey = arg(args, "--pinata-key") ?? process.env.PINATA_API_KEY;
-const pinataSecret = arg(args, "--pinata-secret") ?? process.env.PINATA_API_SECRET;
-const providerArg = arg(args, "--provider") ?? process.env.SCHEMA_PUBLISHER_PROVIDER;
-const hasPinataCreds = Boolean(pinataJwt || (pinataKey && pinataSecret));
-const provider = (providerArg ??
-  (hasPinataCreds ? "pinata" : "ipfs")) as "pinata" | "ipfs";
-if (provider === "pinata" && !hasPinataCreds && !dryRun) {
-  console.error(
-    "Pinata selected but credentials missing. Provide PINATA_JWT or PINATA_API_KEY/PINATA_API_SECRET.",
-  );
   process.exit(1);
 }
 
@@ -125,12 +80,9 @@ for (const file of globalFiles) {
   schemas[key] = schema;
 }
 
-const timestamp = Math.floor(Date.now() / 1000);
 const versionRoot = path.join(schemaRoot, "versions", nextVersion);
-const runsRoot = path.join(schemaRoot, "runs", "ipfs");
 
 fs.mkdirSync(versionRoot, { recursive: true });
-fs.mkdirSync(runsRoot, { recursive: true });
 
 const globalsDocument = {
   version: nextVersion,
@@ -140,114 +92,30 @@ const schemaJsonPath = path.join(versionRoot, "schema.json");
 const schemaJson = JSON.stringify(globalsDocument, null, 2) + "\n";
 fs.writeFileSync(schemaJsonPath, schemaJson, "utf8");
 
-const checksum = `sha256:${hashSha256(schemaJson)}`;
-fs.writeFileSync(path.join(versionRoot, "checksum.sha256"), `${checksum}\n`, "utf8");
-
-const publishResult = dryRun
-  ? { cid: "dry-run", publisher: provider }
-  : await publishFile({
-    provider,
-    filePath: schemaJsonPath,
-    ipfsCmd,
-    pinataJwt,
-    pinataKey,
-    pinataSecret,
-    schemaId,
-    version: nextVersion,
-  });
-const { cid, publisher } = publishResult;
-fs.writeFileSync(path.join(versionRoot, "cid.txt"), `${cid}\n`, "utf8");
-
 const schemaPath = toRepoPath(schemaJsonPath, repoRoot);
-const publishedEntry = {
-  cid,
-  checksum,
-  timestamp,
-  schemaPath,
-};
-
-const meta: PublishedSchema = {
-  schemaId,
-  version: nextVersion,
-  cid,
-  checksum,
-  timestamp,
-  schemaPath,
-  publisher,
-  notes,
-};
-const eip712 = buildEip712({
-  schemaId,
-  version: nextVersion,
-  cid,
-  checksum,
-  timestamp,
-  schemaPath,
-  publisher,
-  notes: notes ?? "",
-}, chainId);
-const signed = await maybeSign(eip712, privateKey);
-if (signed) {
-  meta.signer = signed.signer;
-  meta.signature = signed.signature;
-  meta.eip712 = eip712;
-}
-writeJson(path.join(versionRoot, "meta.json"), meta);
-
-const run: PublishedSchema = {
-  schemaId,
-  version: nextVersion,
-  cid,
-  checksum,
-  timestamp,
-  schemaPath,
-  publisher,
-  notes,
-};
-if (signed) {
-  run.signer = signed.signer;
-  run.signature = signed.signature;
-  run.eip712 = eip712;
-}
-const runPath = path.join(runsRoot, `run-${timestamp}.json`);
-writeJson(runPath, run);
-writeJson(path.join(runsRoot, "run-latest.json"), run);
-
 const latestPath = path.join(publishedRoot, "_latest.json");
 
 const registry = readJson(registryPath, { schemas: {} as Record<string, any> });
 registry.schemas[schemaId] ??= { latest: nextVersion, published: {} };
 registry.schemas[schemaId].latest = nextVersion;
-registry.schemas[schemaId].published[nextVersion] = publishedEntry;
+registry.schemas[schemaId].published[nextVersion] = { schemaPath };
 writeJson(registryPath, registry);
 
 const latest = readJson(latestPath, {} as Record<string, any>);
-latest[schemaId] = {
-  version: nextVersion,
-  cid,
-  checksum,
-  timestamp,
-  ...(signed
-    ? { signer: signed.signer, signature: signed.signature, eip712 }
-    : {}),
-};
+latest[schemaId] = { version: nextVersion };
 writeJson(latestPath, latest);
 
 const index = readJson(indexPath, {
   schemaId,
   latest: nextVersion,
-  published: [] as Array<any>,
+  published: [] as Array<{ version: string; schemaPath: string }>,
 });
 index.schemaId = schemaId;
 index.latest = nextVersion;
 index.published = upsertPublished(index.published, {
   version: nextVersion,
-  ...publishedEntry,
+  schemaPath,
 });
 writeJson(indexPath, index);
 
 console.log(`Published ${schemaId}@${nextVersion}`);
-console.log(`CID: ${cid}`);
-if (signed) {
-  console.log(`Signer: ${signed.signer}`);
-}

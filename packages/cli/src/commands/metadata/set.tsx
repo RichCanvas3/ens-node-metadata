@@ -1,8 +1,12 @@
 import { readFileSync } from 'node:fs'
 import React from 'react'
 import { z } from 'zod'
-import { SCHEMA_MAP } from '@ens-node-metadata/schemas'
-import { getPublishedRegistry } from '@ens-node-metadata/schemas/published'
+import {
+  SCHEMA_MAP,
+  getVersionedSchemaUriForDisplayClass,
+  getTypeUriForDisplayClass,
+  getSchemaVersionForDisplayClass,
+} from '@ens-node-metadata/schemas'
 import { validateMetadataSchema } from '@ens-node-metadata/sdk'
 import { setEnsTextRecords, estimateEnsTextRecordsCost, formatCost, validateEnsTextRecordsCost } from '../../lib/ens-write.js'
 import { useCommand, CommandStatus } from '../../lib/use-command.js'
@@ -46,18 +50,16 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
         return
       }
 
-      // Inject schema CID from the published registry
+      // Inject ontology sem:* records for agent (display class AIAgent)
       try {
-        const registry = await getPublishedRegistry()
-        const agentSchema = registry.schemas['agent']
-        if (agentSchema) {
-          const latestVersion = agentSchema.published[agentSchema.latest]
-          if (latestVersion?.cid) {
-            payload['schema'] = `ipfs://${latestVersion.cid}`
-          }
-        }
+        const schemaUri = getVersionedSchemaUriForDisplayClass('AIAgent')
+        const typeUri = getTypeUriForDisplayClass('AIAgent')
+        const schemaVersion = getSchemaVersionForDisplayClass('AIAgent')
+        if (schemaUri) payload['sem:schema'] = schemaUri
+        if (typeUri) payload['sem:type'] = typeUri
+        if (schemaVersion) payload['sem:schemaVersion'] = schemaVersion
       } catch {
-        // Non-fatal — proceed without schema record
+        // Non-fatal — proceed without sem records
       }
 
       const texts = Object.entries(payload).map(([key, value]) => ({ key, value }))

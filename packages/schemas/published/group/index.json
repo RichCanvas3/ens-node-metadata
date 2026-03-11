@@ -4,9 +4,6 @@
   "published": [
     {
       "version": "0.1.4",
-      "cid": "QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw",
-      "checksum": "sha256:ca4434bed698d565b4a5d24bf98c658dc3e6fa381c48f66cd49744fde1b47559",
-      "timestamp": 1771420694,
       "schemaPath": "packages/schemas/published/group/versions/0.1.4/schema.json"
     }
   ]

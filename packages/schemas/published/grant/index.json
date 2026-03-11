@@ -4,9 +4,6 @@
   "published": [
     {
       "version": "1.0.0",
-      "cid": "QmdktToaxwvN31DGDEtWQ7uVKNURssW5k8oCtgceTFHemS",
-      "checksum": "sha256:205ff736e4ce769bbc86332aedf56fe55275154ffcfda4d2c5003bc809ca4df4",
-      "timestamp": 1771420688,
       "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json"
     }
   ]

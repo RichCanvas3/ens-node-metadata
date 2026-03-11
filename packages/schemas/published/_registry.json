@@ -14,9 +14,6 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmS1ZHmucPJCo8KGaBG2e27c6jqpjFrFWoZWoVPyBPqVyJ",
-          "checksum": "sha256:6778eeaf90b71eb75c2a174f50062e8a5dbfcb62152e0ab905339a6da5e01e3b",
-          "timestamp": 1771420402,
           "schemaPath": "packages/schemas/published/agent/versions/1.0.0/schema.json"
         }
       }
@@ -25,9 +22,6 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmSsjRkk2xZSU6yXxjgPmyKpyfQVGmUw5qLGaPkYcdPW9A",
-          "checksum": "sha256:79de7f6f9d48810193959754c27315a7558529d713a532d5c2566f3de2197819",
-          "timestamp": 1771420672,
           "schemaPath": "packages/schemas/published/application/versions/1.0.0/schema.json"
         }
       }
@@ -36,9 +30,6 @@
       "latest": "1.1.1",
       "published": {
         "1.1.1": {
-          "cid": "QmPq5xpj5LoCnAswuLk8ofgvpFLFNsRhJDPjvPVssCyPw1",
-          "checksum": "sha256:ff0ef9190bc2e00e90ce30a7328187fdbe7bec54bf7945b17c25533685e6c014",
-          "timestamp": 1771420678,
           "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json"
         }
       }
@@ -47,15 +38,9 @@
       "latest": "1.0.1",
       "published": {
         "1.0.0": {
-          "cid": "QmaDG9p9vJjsLBtbtCPTd6tmfJUh2wuXmYQfNwrpe2qQwe",
-          "checksum": "sha256:a44ced384a3e28682f4ba1fc70124dee9a30a0339657a6ab6b33c0c3516a959c",
-          "timestamp": 1771420683,
           "schemaPath": "packages/schemas/published/delegate/versions/1.0.0/schema.json"
         },
         "1.0.1": {
-          "cid": "QmcHmNS3NhcrMgXmCm72bv77EKUx7inoeaS2QeWDuQGU1q",
-          "checksum": "sha256:4208b2eec2ddf8d4ded2df34999070a21779af793d3b09b95f0a5cede999adf7",
-          "timestamp": 1771433406,
           "schemaPath": "packages/schemas/published/delegate/versions/1.0.1/schema.json"
         }
       }
@@ -64,9 +49,6 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmdktToaxwvN31DGDEtWQ7uVKNURssW5k8oCtgceTFHemS",
-          "checksum": "sha256:205ff736e4ce769bbc86332aedf56fe55275154ffcfda4d2c5003bc809ca4df4",
-          "timestamp": 1771420688,
           "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json"
         }
       }
@@ -75,9 +57,6 @@
       "latest": "0.1.4",
       "published": {
         "0.1.4": {
-          "cid": "QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw",
-          "checksum": "sha256:ca4434bed698d565b4a5d24bf98c658dc3e6fa381c48f66cd49744fde1b47559",
-          "timestamp": 1771420694,
           "schemaPath": "packages/schemas/published/group/versions/0.1.4/schema.json"
         }
       }
@@ -86,9 +65,6 @@
       "latest": "0.1.8",
       "published": {
         "0.1.8": {
-          "cid": "QmfPD2L38hREq356GxhMkyMJMECVwRAxm6dEJZh3bpPAdd",
-          "checksum": "sha256:07522b2427846867ffd3a69c1955d08ec0d9a88a3da6d5a0efd5ec94ae103f2a",
-          "timestamp": 1771420699,
           "schemaPath": "packages/schemas/published/org/versions/0.1.8/schema.json"
         }
       }
@@ -97,9 +73,6 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmYZNmUKP751Vfj2ZEVwXawvGto1zsmi4oiTsnunzx6dsp",
-          "checksum": "sha256:c40c06eff4eae205f64a70eb8ab2bb639e6ec7a62aeceeab7d7ae5eaf9959760",
-          "timestamp": 1771420704,
           "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json"
         }
       }
@@ -108,9 +81,6 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmcrTCuN3FmpTP66LzQqDtaxmK7j5wMNtHKQEjE2SCLUZr",
-          "checksum": "sha256:bd72ed65798aa3db260b2fa04c75263df19b06bff9dfbad540921d82c41a76a3",
-          "timestamp": 1771420708,
           "schemaPath": "packages/schemas/published/treasury/versions/1.0.0/schema.json"
         }
       }
@@ -119,9 +89,6 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmTdnHbDob1Cf7Uy1dYmrRezyETvf19QWcaNpFP3WSe2JD",
-          "checksum": "sha256:1a6fadb35c51e238e7ddb947b1ac6b9e899df71247f0eb85c7724092fd075988",
-          "timestamp": 1771420712,
           "schemaPath": "packages/schemas/published/wallet/versions/1.0.0/schema.json"
         }
       }
@@ -130,9 +97,6 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmVPf3nP4KC12An7v94ziWLE3ptFHXwUxFcvKEaPNXGRYd",
-          "checksum": "sha256:128951c9c9c6e91ee0a07b36058180a2881dc0bf33e6216b9d89fb1288e7a27c",
-          "timestamp": 1771421607,
           "schemaPath": "packages/schemas/published/globals/versions/1.0.0/schema.json"
         }
       }
