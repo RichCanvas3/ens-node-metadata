@@ -19,7 +19,9 @@ export interface PublishedRegistry {
 }
 
 /**
- * Get the published registry with schema and meta data loaded for each version
+ * Legacy: loads registry (IPFS CIDs) and local schema files.
+ * The interface app uses the ontology-based loader (load-schemas-node + /api/schemas) instead.
+ * This export remains for CLI and other consumers that still use the registry.
  */
 export async function getPublishedRegistry(): Promise<PublishedRegistry> {
   const enhancedRegistry: PublishedRegistry = {

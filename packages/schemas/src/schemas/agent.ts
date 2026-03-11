@@ -12,7 +12,7 @@ export const AGENT_SCHEMA: Schema = {
     schema: {
       type: 'string',
       format: 'uri',
-      description: 'IPFS URI to the published schema version used by this node'
+      description: 'Schema URI for this node (e.g. https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json); prefer sem:schema when using ontology'
     },
     class: {
       type: 'string',

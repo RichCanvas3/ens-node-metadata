@@ -285,7 +285,6 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
                 activeSchema={activeSchema ?? null}
                 addressFieldKeys={addressFieldKeys}
                 onSelectSchema={handleSelectSchema}
-                allowedClasses={['Treasury', 'Grant', 'Delegate']}
               />
             </div>
 

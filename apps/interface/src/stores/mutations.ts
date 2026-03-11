@@ -3,6 +3,7 @@ import { setRecords, createSubname } from '@ensdomains/ensjs/wallet'
 import type { ClientWithAccount } from '@ensdomains/ensjs/contracts'
 import type { WalletClient } from 'viem'
 import {
+  getDisplayClass,
   getSchemaVersionForDisplayClass,
   getTypeUriForDisplayClass,
   getVersionedSchemaUriForDisplayClass,
@@ -117,13 +118,16 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
           if (value === null || value === undefined) continue
           texts.push({ key, value: String(value) })
-          // W3C-aligned: sem:type, sem:schema (versioned pin), sem:schemaVersion
+          // Legacy + W3C-aligned: schema, class → sem:type, sem:schema, sem:schemaVersion
           if (key === 'class') {
             const displayClass = String(value)
             const typeUri = getTypeUriForDisplayClass(displayClass)
             if (typeUri) texts.push({ key: 'sem:type', value: typeUri })
             const versionedSchema = getVersionedSchemaUriForDisplayClass(displayClass)
-            if (versionedSchema) texts.push({ key: 'sem:schema', value: versionedSchema })
+            if (versionedSchema) {
+              texts.push({ key: 'sem:schema', value: versionedSchema })
+              texts.push({ key: 'schema', value: versionedSchema }) // legacy for clients that only read schema
+            }
             const schemaVersion = getSchemaVersionForDisplayClass(displayClass)
             if (schemaVersion) texts.push({ key: 'sem:schemaVersion', value: schemaVersion })
           }
@@ -139,7 +143,27 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
             texts.push({ key: 'sem:type', value: '' })
             texts.push({ key: 'sem:schema', value: '' })
             texts.push({ key: 'sem:schemaVersion', value: '' })
+            texts.push({ key: 'schema', value: '' })
           }
+        }
+      }
+
+      // Backfill sem:type, sem:schema, sem:schemaVersion, schema if node has a class but they're missing from this update
+      const effectiveClass =
+        (edit.changes?.class != null ? String(edit.changes.class) : null) ?? getDisplayClass(node ?? undefined)
+      if (effectiveClass) {
+        const hasSemType = texts.some((t) => t.key === 'sem:type')
+        const hasSemSchema = texts.some((t) => t.key === 'sem:schema')
+        const hasSemVersion = texts.some((t) => t.key === 'sem:schemaVersion')
+        const hasLegacySchema = texts.some((t) => t.key === 'schema')
+        if (!hasSemType || !hasSemSchema || !hasSemVersion || !hasLegacySchema) {
+          const typeUri = getTypeUriForDisplayClass(effectiveClass)
+          const versionedSchema = getVersionedSchemaUriForDisplayClass(effectiveClass)
+          const schemaVersion = getSchemaVersionForDisplayClass(effectiveClass)
+          if (!hasSemType && typeUri) texts.push({ key: 'sem:type', value: typeUri })
+          if (!hasSemSchema && versionedSchema) texts.push({ key: 'sem:schema', value: versionedSchema })
+          if (!hasSemVersion && schemaVersion) texts.push({ key: 'sem:schemaVersion', value: schemaVersion })
+          if (!hasLegacySchema && versionedSchema) texts.push({ key: 'schema', value: versionedSchema })
         }
       }
 

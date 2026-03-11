@@ -16,7 +16,7 @@ Node metadata (`class`, `schema`, etc.) are ENS text records stored in `node.tex
 | `useTreeEditStore` | `/stores/tree-edits.ts` | Delta-based mutation tracking (`texts`/`changes`/`deleted`), keyed by ENS name |
 | `useNodeEditorStore` | `/stores/node-editor.ts` | EditNodeDrawer form state, schema selection, field visibility |
 | `useMutationsStore` | `/stores/mutations.ts` | On-chain writes via `setRecords`. Deletions → empty strings. Status: pending→signing→submitted→confirmed |
-| `useSchemaStore` | `/stores/schemas.ts` | Schema registry, fetched from published IPFS CIDs |
+| `useSchemaStore` | `/stores/schemas.ts` | Schema registry, fetched from /api/schemas (ontology-based, versioned schema URIs) |
 
 ## Node Rendering
 
@@ -31,8 +31,8 @@ Node metadata (`class`, `schema`, etc.) are ENS text records stored in `node.tex
 
 - Defined in `/packages/schemas/src/schemas/`, JSON Schema spec with ENS extensions
 - ENSIP-5 mixin (`utils/ensip-5.ts`) provides standard fields (avatar, description, email, etc.)
-- Published to `/packages/schemas/published/` with IPFS CIDs
-- Schema `id` = `ipfs://<cid>`, matched against `node.texts.schema`
+- Schema list from ontology resolution table; content from `/packages/schemas/published/`
+- Schema `id` = versioned URI (e.g. `https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json`); resolution uses `sem:schema` or `sem:type`
 - Flow: schema definitions → `SCHEMAS` array → published registry → API → EditNodeDrawer → delta in tree-edits → batch apply
 
 ## Computed Nodes

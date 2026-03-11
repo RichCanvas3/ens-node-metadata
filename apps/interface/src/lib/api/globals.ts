@@ -1,18 +1,11 @@
 import type { Schema as BaseSchema } from '@ens-node-metadata/schemas/types'
-import { getPublishedRegistry } from '@ens-node-metadata/schemas/published'
 
 /**
- * Fetch all global sub-schemas (e.g. ENSIP-5) from the published globals bundle
- * Returns a map keyed by global schema name (e.g. "ensip-5")
+ * Fetch global sub-schemas (e.g. ENSIP-5) from the ontology-based schemas API.
  */
 export async function fetchGlobals(): Promise<Record<string, BaseSchema>> {
-  const registry = await getPublishedRegistry()
-  const globalsData = registry.schemas.globals
-  if (!globalsData) return {}
-
-  const latestVersion = globalsData.latest
-  const versionEntry = globalsData.published[latestVersion]
-  if (!versionEntry?.schema?.schemas) return {}
-
-  return versionEntry.schema.schemas as Record<string, BaseSchema>
+  const res = await fetch('/api/schemas')
+  if (!res.ok) return {}
+  const { globals } = await res.json()
+  return globals?.schemas ?? {}
 }

@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/dialog'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNode } from '@/lib/tree/types'
-import { Sparkles, Vault, HandCoins, UserCheck } from 'lucide-react'
+import { getNodeConfig } from '@/config/nodes'
+import { Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { CreateNodeDrawer } from './drawers/CreateNodeDrawer'
 
@@ -27,6 +28,19 @@ interface SuggestionsDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+const NODE_SUGGESTIONS: { id: string; title: string; description: string }[] = [
+  { id: 'agent', title: 'Agent', description: 'This node represents an autonomous software-controlled entity.' },
+  { id: 'application', title: 'Application', description: 'This node represents a software application, service, or product.' },
+  { id: 'contract', title: 'Contract', description: 'This node represents, and resolves to, a smart contract.' },
+  { id: 'delegate', title: 'Delegate', description: 'Publish your delegate statement and conflict of interest; represents a voter in on-chain governance.' },
+  { id: 'grant', title: 'Grant', description: 'Create a node to represent a grant program or funding allocation.' },
+  { id: 'group', title: 'Group', description: 'This node represents a logical grouping of multiple child nodes.' },
+  { id: 'org', title: 'Org', description: 'This node represents an organization or sub-organization within a larger entity.' },
+  { id: 'person', title: 'Person', description: 'This node represents an individual human.' },
+  { id: 'treasury', title: 'Treasury', description: 'Create a node which points to a shared treasury or vault.' },
+  { id: 'wallet', title: 'Wallet', description: "This node's main purpose is to send, receive, and/or store funds." },
+]
+
 export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps) {
   const { sourceTree } = useTreeData()
 
@@ -41,42 +55,13 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     return null
   }
 
-  // Simple presets following convention: title, description, fields
-  const suggestions: Suggestion[] = [
-    {
-      id: 'treasury',
-      title: 'Treasury',
-      description: 'Create a node which points to a shared treasury or vault',
-      icon: Vault,
-      getNodes: (rootName) => [
-        {
-          name: `treasury.${rootName}`,
-        } as TreeNode,
-      ],
-    },
-    {
-      id: 'grant',
-      title: 'Grant',
-      description: 'Create a node to represent a grant program',
-      icon: HandCoins,
-      getNodes: (rootName) => [
-        {
-          name: `grant.${rootName}`,
-        } as TreeNode,
-      ],
-    },
-    {
-      id: 'delegate',
-      title: 'Delegate Information',
-      description: 'Publish your delegate statement and conflict of interest',
-      icon: UserCheck,
-      getNodes: (rootName) => [
-        {
-          name: `delegate.${rootName}`,
-        } as TreeNode,
-      ],
-    },
-  ]
+  const suggestions: Suggestion[] = NODE_SUGGESTIONS.map(({ id, title, description }) => ({
+    id,
+    title,
+    description,
+    icon: getNodeConfig(title).icon,
+    getNodes: (rootName: string) => [{ name: `${id}.${rootName}` } as TreeNode],
+  }))
 
   const handleSelectSuggestion = (suggestion: Suggestion) => {
     setSelectedSuggestion({

@@ -128,7 +128,13 @@ function main() {
   // --- Resolution table (for runtime: type URI <-> display class, default + versioned schema) ---
   const byTypeUri: Record<
     string,
-    { displayClass: string; defaultSchemaUri: string; versionedSchemaUri: string; schemaVersion: string }
+    {
+      displayClass: string
+      defaultSchemaUri: string
+      versionedSchemaUri: string
+      schemaVersion: string
+      schemaId: string
+    }
   > = {}
   const legacyClassToTypeUri: Record<string, string> = {}
   for (const [schemaId, classMapping] of Object.entries(mapping.classes)) {
@@ -144,6 +150,7 @@ function main() {
       defaultSchemaUri,
       versionedSchemaUri,
       schemaVersion: classMapping.schemaVersion,
+      schemaId,
     }
     legacyClassToTypeUri[classMapping.conceptLocalName] = typeUri
     if (classMapping.conceptLocalName === 'Org') {
