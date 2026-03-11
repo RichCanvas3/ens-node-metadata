@@ -1,87 +1,88 @@
 @prefix atl: <https://ontology.agentictrust.io/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Upper ontology (align with PROV-O / W3C where applicable)
-atl:Node a owl:Class ;
-  rdfs:label "ENS metadata node" .
+# ENS semantic node (root for this ontology)
+atl:EnsNode a owl:Class ;
+  rdfs:label "ENS semantic node" .
 
-atl:ActorNode a owl:Class ;
-  rdfs:subClassOf atl:Node ;
-  rdfs:label "Actor node" .
-
-atl:EntityNode a owl:Class ;
-  rdfs:subClassOf atl:Node ;
-  rdfs:label "Entity node" .
-
-atl:OrganizationalNode a owl:Class ;
-  rdfs:subClassOf atl:Node ;
-  rdfs:label "Organizational node" .
-
-# Default schema: stable URL for this type (current compatible schema).
-# ENS may optionally pin a versioned URL via sem:schema.
+# Default schema: stable URL for this type. ENS may pin a versioned URL via sem:schema.
 atl:defaultSchema a owl:ObjectProperty ;
-  rdfs:domain atl:Node ;
   rdfs:label "default schema" .
 
-# Node classes (one per schema), with defaultSchema and subClassOf
-atl:AgentNode a owl:Class ;
-  rdfs:subClassOf atl:ActorNode ;
+# atl:OrganizationNode for org structure (Group, governance units, etc.)
+atl:OrganizationNode a owl:Class ;
+  rdfs:subClassOf prov:Organization ;
+  rdfs:label "Organization node" .
+
+atl:GovernanceBody a owl:Class ;
+  rdfs:subClassOf atl:OrganizationNode ;
+  rdfs:label "Governance body" .
+
+atl:OperationalUnit a owl:Class ;
+  rdfs:subClassOf atl:OrganizationNode ;
+  rdfs:label "Operational unit" .
+
+# Node classes: subClassOf PROV-O or atl classes
+atl:AIAgentNode a owl:Class ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#SoftwareAgent> ;
   atl:defaultSchema <https://schemas.agentictrust.io/agent-node.json> ;
-  rdfs:label "Agent" ;
-  rdfs:comment "This node represents an autonomous software-controlled entity." .
+  rdfs:label "AIAgent" ;
+  rdfs:comment "This node represents an AI-driven software agent capable of autonomous or semi-autonomous action." .
 
 atl:ApplicationNode a owl:Class ;
-  rdfs:subClassOf atl:ActorNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Entity> ;
+  rdfs:seeAlso <https://schema.org/SoftwareApplication> ;
   atl:defaultSchema <https://schemas.agentictrust.io/application-node.json> ;
   rdfs:label "Application" ;
-  rdfs:comment "This node represents a software application, service, or product." .
+  rdfs:comment "This node represents a software application, service, or product (artifact)." .
 
 atl:ContractNode a owl:Class ;
-  rdfs:subClassOf atl:EntityNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Entity> ;
   atl:defaultSchema <https://schemas.agentictrust.io/contract-node.json> ;
   rdfs:label "Contract" ;
   rdfs:comment "This node represents, and resolves to, a smart contract." .
 
 atl:DelegateNode a owl:Class ;
-  rdfs:subClassOf atl:ActorNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Role> ;
   atl:defaultSchema <https://schemas.agentictrust.io/delegate-node.json> ;
   rdfs:label "Delegate" ;
   rdfs:comment "This node represents a voter in on-chain governance, who may or may not have been delegated voting power from others." .
 
 atl:GrantNode a owl:Class ;
-  rdfs:subClassOf atl:OrganizationalNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Entity> ;
   atl:defaultSchema <https://schemas.agentictrust.io/grant-node.json> ;
   rdfs:label "Grant" ;
-  rdfs:comment "This node represents a grant program or funding allocation." .
+  rdfs:comment "This node represents a grant program, funding allocation, or funding award." .
 
 atl:GroupNode a owl:Class ;
-  rdfs:subClassOf atl:OrganizationalNode ;
+  rdfs:subClassOf atl:OrganizationNode ;
   atl:defaultSchema <https://schemas.agentictrust.io/group-node.json> ;
   rdfs:label "Group" ;
-  rdfs:comment "This node represents a logical grouping of multiple child nodes." .
+  rdfs:comment "This node represents a logical grouping of multiple child nodes within an organizational structure." .
 
 atl:OrganizationNode a owl:Class ;
-  rdfs:subClassOf atl:OrganizationalNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Organization> ;
   atl:defaultSchema <https://schemas.agentictrust.io/org-node.json> ;
   rdfs:label "Org" ;
   rdfs:comment "This node represents an organization or sub-organization within a larger entity." .
 
 atl:PersonNode a owl:Class ;
-  rdfs:subClassOf atl:ActorNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Person> ;
   atl:defaultSchema <https://schemas.agentictrust.io/person-node.json> ;
   rdfs:label "Person" ;
   rdfs:comment "This node represents an individual human." .
 
 atl:TreasuryNode a owl:Class ;
-  rdfs:subClassOf atl:OrganizationalNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Entity> ;
   atl:defaultSchema <https://schemas.agentictrust.io/treasury-node.json> ;
   rdfs:label "Treasury" ;
   rdfs:comment "This node represents an account for funds that are collectively owned and/or managed." .
 
 atl:WalletNode a owl:Class ;
-  rdfs:subClassOf atl:EntityNode ;
+  rdfs:subClassOf <http://www.w3.org/ns/prov#Entity> ;
   atl:defaultSchema <https://schemas.agentictrust.io/wallet-node.json> ;
   rdfs:label "Wallet" ;
   rdfs:comment "This node's main purpose is to send, receive, and/or store funds." .

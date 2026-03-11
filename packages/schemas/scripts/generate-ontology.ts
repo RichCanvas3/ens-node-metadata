@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Generates T-Box (OWL/RDFS ontology) and C-Box (SKOS taxonomy) from
- * mapping.json using stable + versioned schema URLs (no IPFS).
+ * mapping.json. Hierarchy is grounded in PROV-O (prov:Agent, prov:Entity,
+ * prov:Person, prov:Organization, prov:SoftwareAgent, prov:Role).
  * Run: pnpm --filter @ens-node-metadata/schemas ontology:generate
  */
 import fs from 'node:fs'
@@ -17,14 +18,17 @@ const mappingPath = path.join(ontologyDir, 'mapping.json')
 const ONTOLOGY_BASE = 'https://ontology.agentictrust.io/'
 const TAXONOMY_BASE = 'https://taxonomy.agentictrust.io/'
 const SCHEMA_BASE = 'https://schemas.agentictrust.io/'
+const PROV = 'http://www.w3.org/ns/prov#'
 
 interface ClassMapping {
   typeLocalName: string
   conceptLocalName: string
-  parentClass: string
+  parentClass?: string
+  parentClassUri?: string
   definition: string
   schemaPath: string
   schemaVersion: string
+  seeAlso?: string
 }
 
 interface ConceptOnly {
@@ -50,13 +54,11 @@ function escapeTurtle(str: string): string {
   return `"${str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
 }
 
-/** Stable URL: https://schemas.agentictrust.io/agent-node.json */
 function stableSchemaUrl(base: string, schemaPath: string): string {
   const b = base.endsWith('/') ? base : base + '/'
   return b + schemaPath
 }
 
-/** Versioned URL: https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json */
 function versionedSchemaUrl(base: string, schemaPath: string, version: string): string {
   const b = base.endsWith('/') ? base : base + '/'
   const family = schemaPath.replace(/\.json$/i, '')
@@ -75,49 +77,55 @@ function main() {
   const atl = ontologyBase.endsWith('/') ? ontologyBase : ontologyBase + '/'
   const atc = taxonomyBase.endsWith('/') ? taxonomyBase : taxonomyBase + '/'
 
-  // --- T-Box (ontology) ---
+  // --- T-Box: PROV-O-grounded ontology ---
   const tboxLines: string[] = [
     `@prefix atl: <${atl}> .`,
+    `@prefix prov: <${PROV}> .`,
     `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .`,
     `@prefix owl: <http://www.w3.org/2002/07/owl#> .`,
     `@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .`,
     ``,
-    `# Upper ontology (align with PROV-O / W3C where applicable)`,
-    `atl:Node a owl:Class ;`,
-    `  rdfs:label "ENS metadata node" .`,
+    `# ENS semantic node (root for this ontology)`,
+    `atl:EnsNode a owl:Class ;`,
+    `  rdfs:label "ENS semantic node" .`,
     ``,
-    `atl:ActorNode a owl:Class ;`,
-    `  rdfs:subClassOf atl:Node ;`,
-    `  rdfs:label "Actor node" .`,
-    ``,
-    `atl:EntityNode a owl:Class ;`,
-    `  rdfs:subClassOf atl:Node ;`,
-    `  rdfs:label "Entity node" .`,
-    ``,
-    `atl:OrganizationalNode a owl:Class ;`,
-    `  rdfs:subClassOf atl:Node ;`,
-    `  rdfs:label "Organizational node" .`,
-    ``,
-    `# Default schema: stable URL for this type (current compatible schema).`,
-    `# ENS may optionally pin a versioned URL via sem:schema.`,
+    `# Default schema: stable URL for this type. ENS may pin a versioned URL via sem:schema.`,
     `atl:defaultSchema a owl:ObjectProperty ;`,
-    `  rdfs:domain atl:Node ;`,
     `  rdfs:label "default schema" .`,
     ``,
-    `# Node classes (one per schema), with defaultSchema and subClassOf`,
+    `# atl:OrganizationNode for org structure (Group, governance units, etc.)`,
+    `atl:OrganizationNode a owl:Class ;`,
+    `  rdfs:subClassOf prov:Organization ;`,
+    `  rdfs:label "Organization node" .`,
+    ``,
+    `atl:GovernanceBody a owl:Class ;`,
+    `  rdfs:subClassOf atl:OrganizationNode ;`,
+    `  rdfs:label "Governance body" .`,
+    ``,
+    `atl:OperationalUnit a owl:Class ;`,
+    `  rdfs:subClassOf atl:OrganizationNode ;`,
+    `  rdfs:label "Operational unit" .`,
+    ``,
+    `# Node classes: subClassOf PROV-O or atl classes`,
   ]
 
   for (const [_schemaId, classMapping] of Object.entries(mapping.classes)) {
     const stableUri = stableSchemaUrl(schemaBase, classMapping.schemaPath)
     const typeUri = `atl:${classMapping.typeLocalName}`
-    const parentUri = `atl:${classMapping.parentClass}`
+    const parentRef = classMapping.parentClassUri
+      ? `<${classMapping.parentClassUri}>`
+      : `atl:${classMapping.parentClass}`
     const lines: string[] = [
       `${typeUri} a owl:Class ;`,
-      `  rdfs:subClassOf ${parentUri} ;`,
+      `  rdfs:subClassOf ${parentRef} ;`,
       `  atl:defaultSchema <${stableUri}> ;`,
       `  rdfs:label ${escapeTurtle(classMapping.conceptLocalName)} ;`,
       `  rdfs:comment ${escapeTurtle(classMapping.definition)} .`,
     ]
+    if (classMapping.seeAlso) {
+      lines[0] = `${typeUri} a owl:Class ;`
+      lines.splice(2, 0, `  rdfs:seeAlso <${classMapping.seeAlso}> ;`)
+    }
     tboxLines.push(...lines, '')
   }
 
@@ -125,7 +133,7 @@ function main() {
   fs.writeFileSync(tboxPath, tboxLines.join('\n'), 'utf-8')
   console.log('Wrote T-Box:', tboxPath)
 
-  // --- Resolution table (for runtime: type URI <-> display class, default + versioned schema) ---
+  // --- Resolution table ---
   const byTypeUri: Record<
     string,
     {
@@ -145,13 +153,14 @@ function main() {
       classMapping.schemaPath,
       classMapping.schemaVersion
     )
-    byTypeUri[typeUri] = {
+    const entry = {
       displayClass: classMapping.conceptLocalName,
       defaultSchemaUri,
       versionedSchemaUri,
       schemaVersion: classMapping.schemaVersion,
       schemaId,
     }
+    byTypeUri[typeUri] = entry
     legacyClassToTypeUri[classMapping.conceptLocalName] = typeUri
     if (classMapping.conceptLocalName === 'Org') {
       legacyClassToTypeUri['Organization'] = typeUri
@@ -177,8 +186,9 @@ function main() {
   ]
 
   for (const [_schemaId, classMapping] of Object.entries(mapping.classes)) {
+    const conceptName = classMapping.conceptLocalName.replace(/\s+/g, '')
     cboxLines.push(
-      `atc:${classMapping.conceptLocalName} a skos:Concept ;`,
+      `atc:${conceptName} a skos:Concept ;`,
       `  skos:prefLabel ${escapeTurtle(classMapping.conceptLocalName)} ;`,
       `  skos:definition ${escapeTurtle(classMapping.definition)} ;`,
       `  skos:inScheme atc:NodeTypes ;`,
@@ -187,7 +197,6 @@ function main() {
     )
   }
 
-  // Broader concepts (for Committee, Council, Workgroup)
   cboxLines.push(
     `atc:GovernanceBody a skos:Concept ;`,
     `  skos:prefLabel "Governance body" ;`,

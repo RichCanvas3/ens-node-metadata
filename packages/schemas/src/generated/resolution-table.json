@@ -1,7 +1,7 @@
 {
   "byTypeUri": {
-    "https://ontology.agentictrust.io/AgentNode": {
-      "displayClass": "Agent",
+    "https://ontology.agentictrust.io/AIAgentNode": {
+      "displayClass": "AIAgent",
       "defaultSchemaUri": "https://schemas.agentictrust.io/agent-node.json",
       "versionedSchemaUri": "https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json",
       "schemaVersion": "1.0.0",
@@ -72,7 +72,7 @@
     }
   },
   "legacyClassToTypeUri": {
-    "Agent": "https://ontology.agentictrust.io/AgentNode",
+    "AIAgent": "https://ontology.agentictrust.io/AIAgentNode",
     "Application": "https://ontology.agentictrust.io/ApplicationNode",
     "Contract": "https://ontology.agentictrust.io/ContractNode",
     "Delegate": "https://ontology.agentictrust.io/DelegateNode",

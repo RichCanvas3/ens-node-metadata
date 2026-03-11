@@ -5,15 +5,15 @@
 atc:NodeTypes a skos:ConceptScheme ;
   skos:prefLabel "ENS node type concepts" .
 
-atc:Agent a skos:Concept ;
-  skos:prefLabel "Agent" ;
-  skos:definition "This node represents an autonomous software-controlled entity." ;
+atc:AIAgent a skos:Concept ;
+  skos:prefLabel "AIAgent" ;
+  skos:definition "This node represents an AI-driven software agent capable of autonomous or semi-autonomous action." ;
   skos:inScheme atc:NodeTypes ;
-  skos:scopeNote "Maps to atl:AgentNode" .
+  skos:scopeNote "Maps to atl:AIAgentNode" .
 
 atc:Application a skos:Concept ;
   skos:prefLabel "Application" ;
-  skos:definition "This node represents a software application, service, or product." ;
+  skos:definition "This node represents a software application, service, or product (artifact)." ;
   skos:inScheme atc:NodeTypes ;
   skos:scopeNote "Maps to atl:ApplicationNode" .
 
@@ -31,13 +31,13 @@ atc:Delegate a skos:Concept ;
 
 atc:Grant a skos:Concept ;
   skos:prefLabel "Grant" ;
-  skos:definition "This node represents a grant program or funding allocation." ;
+  skos:definition "This node represents a grant program, funding allocation, or funding award." ;
   skos:inScheme atc:NodeTypes ;
   skos:scopeNote "Maps to atl:GrantNode" .
 
 atc:Group a skos:Concept ;
   skos:prefLabel "Group" ;
-  skos:definition "This node represents a logical grouping of multiple child nodes." ;
+  skos:definition "This node represents a logical grouping of multiple child nodes within an organizational structure." ;
   skos:inScheme atc:NodeTypes ;
   skos:scopeNote "Maps to atl:GroupNode" .
 
@@ -75,21 +75,21 @@ atc:OperationalUnit a skos:Concept ;
 
 atc:Committee a skos:Concept ;
   skos:prefLabel "Committee" ;
-  skos:definition "This node represents a formal group with delegated authority to make decisions or provide oversight within a defined scope." ;
+  skos:definition "A formal group with delegated authority to make decisions or provide oversight within a defined scope." ;
   skos:inScheme atc:NodeTypes ;
   skos:broader atc:GovernanceBody ;
   skos:scopeNote "Concept only; no schema in registry yet" .
 
 atc:Council a skos:Concept ;
   skos:prefLabel "Council" ;
-  skos:definition "This node represents a high-level governance body with broad strategic authority and stewardship responsibilities." ;
+  skos:definition "A high-level governance body with broad strategic authority and stewardship responsibilities." ;
   skos:inScheme atc:NodeTypes ;
   skos:broader atc:GovernanceBody ;
   skos:scopeNote "Concept only; no schema in registry yet" .
 
 atc:Workgroup a skos:Concept ;
   skos:prefLabel "Workgroup" ;
-  skos:definition "This node represents an operational team focused on executing tasks or work within a specific domain." ;
+  skos:definition "An operational team focused on executing tasks or work within a specific domain." ;
   skos:inScheme atc:NodeTypes ;
   skos:broader atc:OperationalUnit ;
   skos:scopeNote "Concept only; no schema in registry yet" .

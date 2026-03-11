@@ -74,13 +74,13 @@ const nodeConfigs: Record<string, NodeTypeConfig> = {
     icon: Crown,
     suggestedCta: 'Click to add council',
   },
-  Agent: {
-    badgeLabel: 'AGENT',
+  AIAgent: {
+    badgeLabel: 'AI AGENT',
     badgeBg: 'bg-cyan-100',
     badgeText: 'text-cyan-800',
     accentColor: '#06b6d4',
     icon: Bot,
-    suggestedCta: 'Click to add agent',
+    suggestedCta: 'Click to add AI agent',
   },
   Application: {
     badgeLabel: 'APP',
