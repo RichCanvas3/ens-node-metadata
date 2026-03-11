@@ -1,0 +1,16 @@
+---
+title: Ontology & taxonomy (T-Box / C-Box)
+weight: 3
+---
+
+# Ontology and taxonomy model
+
+The node classification metadata design aligns with W3C ontology practice by separating:
+
+- **Concepts (C-Box)** — SKOS concept scheme: human-facing labels and definitions (e.g. "Agent", "Treasury"). Used for display and filtering.
+- **Classes (T-Box)** — OWL/RDFS ontology: formal types (e.g. `AgentNode`, `TreasuryNode`) with inheritance and a `defaultSchema` link to the stable JSON Schema URL for that type (e.g. `https://schemas.agentictrust.io/agent-node.json`). ENS nodes may optionally pin a versioned schema via `sem:schema`.
+- **Validation** — JSON Schema remains the payload validator; the ontology points to it so that `sem:type` alone can imply the schema.
+
+ENS text records stay minimal: `class` and `schema` (legacy) or `sem:type` and optional `label`. Clients that support the ontology resolve `sem:type` to a display label and schema URI via the published T-Box and C-Box. The registry includes `ontology` and `taxonomy` URIs; the schema package ships generated Turtle under `packages/schemas/ontology/` and `packages/schemas/taxonomy/`.
+
+This separation matches the recommendation in the response to "Technical Design v3": use concept URIs for classification, a formal type for semantics, and keep schema for validation only.

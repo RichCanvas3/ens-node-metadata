@@ -16,6 +16,8 @@ interface SchemaEditorProps {
   addressFieldKeys: Set<string>
   onSelectSchema: (schemaId: string) => void
   onRefreshSchemas?: () => Promise<void>
+  /** When set, only these node classes are shown in the schema dropdown (e.g. create flow: Treasury, Grant, Delegate only) */
+  allowedClasses?: string[]
 }
 
 export function SchemaEditor({
@@ -23,6 +25,7 @@ export function SchemaEditor({
   addressFieldKeys,
   onSelectSchema,
   onRefreshSchemas,
+  allowedClasses,
 }: SchemaEditorProps) {
   const {
     formData,
@@ -57,8 +60,11 @@ export function SchemaEditor({
     isOptionalFieldDropdownOpen,
   )
 
+  const allowedSet =
+    allowedClasses != null ? new Set(allowedClasses.map((c) => c.toLowerCase())) : null
   const filteredSchemas = schemas
     .filter((s) => s.isLatest && s.class != null)
+    .filter((s) => (allowedSet == null ? true : allowedSet.has(s.class.toLowerCase())))
     .filter((s) => s.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
 
   const isHiddenField = (key: string) => addressFieldKeys.has(key) || key === 'schema' || key === 'class'

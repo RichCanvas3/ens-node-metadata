@@ -1,4 +1,14 @@
 {
+  "ontology": {
+    "uri": "https://ontology.agentictrust.io/",
+    "version": "1.0.0",
+    "description": "T-Box: OWL/RDFS class definitions and defaultSchema (stable + versioned schema URLs)"
+  },
+  "taxonomy": {
+    "uri": "https://taxonomy.agentictrust.io/",
+    "version": "1.0.0",
+    "description": "C-Box: SKOS concept scheme (prefLabel, definition, broader)"
+  },
   "schemas": {
     "agent": {
       "latest": "1.0.0",

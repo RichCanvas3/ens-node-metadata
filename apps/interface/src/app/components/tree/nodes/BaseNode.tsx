@@ -2,7 +2,10 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { type NodeTypeConfig, getNodeConfig } from '@/config/nodes'
+import { getDisplayClass } from '@ens-node-metadata/schemas'
+import { chainId } from '@/lib/chain'
 import { getAvatarFallback } from '@/lib/getAvatarFallback'
+import { ensLink, explorerLink } from '@/lib/links'
 import { shortAddress } from '@/lib/shortAddress'
 import type { TreeNode } from '@/lib/tree/types'
 import type { Node, NodeProps } from '@xyflow/react'
@@ -50,15 +53,15 @@ export const BaseNodeCard = ({
   footerSlot,
   overflow = 'hidden',
 }: BaseNodeCardProps) => {
-  const schemaType = ((node as any).class || node.texts?.class) as string | undefined
+  const schemaType = getDisplayClass(node)
   const baseConfig = getNodeConfig(schemaType)
   const config = configOverride ? { ...baseConfig, ...configOverride } : baseConfig
 
   const Icon = config.icon
   const displayName = node.name.split('.')[0]
-  const ensUrl = `https://app.ens.domains/${node.name}`
-  const addressUrl = node.address ? `https://etherscan.io/address/${node.address}` : null
-  const managerUrl = `https://etherscan.io/address/${node.owner}`
+  const ensUrl = ensLink(node.name, chainId)
+  const addressUrl = node.address ? explorerLink(node.address, chainId) : null
+  const managerUrl = explorerLink(node.owner, chainId)
 
   const handleToggleCollapse = (e: React.MouseEvent) => {
     e.stopPropagation()

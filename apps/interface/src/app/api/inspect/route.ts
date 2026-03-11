@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicClient, http } from 'viem'
+import { getDisplayClass } from '@ens-node-metadata/schemas'
 import { chain } from '@/lib/chain'
 
 const SAFE_ABI = [
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       transport: http(rpcUrl),
     })
 
-    const nodeClass = node.class || node.texts?.class
+    const nodeClass = getDisplayClass(node)
 
     const result: any = {
       address: node.address,

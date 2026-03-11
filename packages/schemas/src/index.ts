@@ -31,3 +31,15 @@ export const SCHEMA_MAP: Record<string, Schema> = SCHEMAS.reduce(
   },
   {} as Record<string, Schema>,
 )
+
+export {
+  getDefaultSchemaUriForDisplayClass,
+  getDisplayClass,
+  getSchemaUriForNode,
+  getSchemaUriFromNode,
+  getSchemaVersionForDisplayClass,
+  getTypeUri,
+  getTypeUriForDisplayClass,
+  getVersionedSchemaUriForDisplayClass,
+  type NodeLike,
+} from './resolution'

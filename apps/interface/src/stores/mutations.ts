@@ -2,6 +2,11 @@ import { create } from 'zustand'
 import { setRecords, createSubname } from '@ensdomains/ensjs/wallet'
 import type { ClientWithAccount } from '@ensdomains/ensjs/contracts'
 import type { WalletClient } from 'viem'
+import {
+  getSchemaVersionForDisplayClass,
+  getTypeUriForDisplayClass,
+  getVersionedSchemaUriForDisplayClass,
+} from '@ens-node-metadata/schemas'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
 import { useTxnsStore } from './txns'
@@ -112,6 +117,16 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
           if (value === null || value === undefined) continue
           texts.push({ key, value: String(value) })
+          // W3C-aligned: sem:type, sem:schema (versioned pin), sem:schemaVersion
+          if (key === 'class') {
+            const displayClass = String(value)
+            const typeUri = getTypeUriForDisplayClass(displayClass)
+            if (typeUri) texts.push({ key: 'sem:type', value: typeUri })
+            const versionedSchema = getVersionedSchemaUriForDisplayClass(displayClass)
+            if (versionedSchema) texts.push({ key: 'sem:schema', value: versionedSchema })
+            const schemaVersion = getSchemaVersionForDisplayClass(displayClass)
+            if (schemaVersion) texts.push({ key: 'sem:schemaVersion', value: schemaVersion })
+          }
         }
       }
 
@@ -120,6 +135,11 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
         for (const key of edit.deleted) {
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
           texts.push({ key, value: '' })
+          if (key === 'class') {
+            texts.push({ key: 'sem:type', value: '' })
+            texts.push({ key: 'sem:schema', value: '' })
+            texts.push({ key: 'sem:schemaVersion', value: '' })
+          }
         }
       }
 

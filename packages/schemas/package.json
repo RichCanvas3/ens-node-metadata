@@ -7,7 +7,8 @@
   "types": "./src/index.ts",
   "scripts": {
     "publish:schema": "tsx ./scripts/publish-schema.ts",
-    "publish:globals": "tsx ./scripts/publish-globals.ts"
+    "publish:globals": "tsx ./scripts/publish-globals.ts",
+    "ontology:generate": "tsx ./scripts/generate-ontology.ts"
   },
   "exports": {
     ".": "./src/index.ts",

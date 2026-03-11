@@ -1,3 +1,4 @@
+import { getDisplayClass } from '@ens-node-metadata/schemas'
 import type { TreeNode } from './types'
 
 /**
@@ -25,7 +26,7 @@ export function findNodeByAddress(
       return tree
     }
     // Check if type matches
-    const nodeType = (tree as any).class || tree.texts?.class
+    const nodeType = getDisplayClass(tree)
     if (nodeType === type) {
       return tree
     }

@@ -2,6 +2,7 @@
 
 import { memo, useState } from 'react'
 import type { Node, NodeProps } from '@xyflow/react'
+import { getDisplayClass } from '@ens-node-metadata/schemas'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeControlsStore } from '@/stores/tree-controls'
@@ -58,7 +59,7 @@ const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
         for (const [index, signer] of result.metadata.signers.entries()) {
           const signerAddress = signer.address as `0x${string}`
           const existingNodes = findAllNodesByAddress(previewTree, signerAddress)
-          const existingSignerNode = existingNodes.find((n) => ((n as any).class || n.texts?.class) === 'Signer')
+          const existingSignerNode = existingNodes.find((n) => getDisplayClass(n) === 'Signer')
 
           if (existingSignerNode) {
             existingRefs.push(existingSignerNode.name)

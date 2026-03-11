@@ -12,6 +12,8 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { chainId } from '@/lib/chain'
+import { explorerLink, explorerTxLink } from '@/lib/links'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { useTxnsStore } from '@/stores/txns'
@@ -118,7 +120,7 @@ export function ApplyChangesDialog({
                 </span>
                 {resolverAddress !== 'unknown' ? (
                   <a
-                    href={`https://etherscan.io/address/${resolverAddress}`}
+                    href={explorerLink(resolverAddress, chainId)}
                     target="_blank"
                     rel="noopener noreferrer"
                     title="View Resolver on Etherscan"
@@ -234,7 +236,7 @@ export function ApplyChangesDialog({
                             )}
                             {txn?.hash && (
                               <a
-                                href={`https://etherscan.io/tx/${txn.hash}`}
+                                href={explorerTxLink(txn.hash, chainId)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="ml-1 text-gray-400 hover:text-indigo-500 flex items-center gap-0.5"
@@ -304,7 +306,7 @@ export function ApplyChangesDialog({
                         <span className="font-mono font-bold text-sm truncate">{nodeName}</span>
                         {originalNode?.address && (
                           <a
-                            href={`https://etherscan.io/address/${originalNode.address}`}
+                            href={explorerLink(originalNode.address, chainId)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-mono flex items-center gap-1 shrink-0"
@@ -400,7 +402,7 @@ export function ApplyChangesDialog({
                           )}
                           {editTxn?.hash && (
                             <a
-                              href={`https://etherscan.io/tx/${editTxn.hash}`}
+                              href={explorerTxLink(editTxn.hash, chainId)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-1 text-gray-400 hover:text-indigo-500 flex items-center gap-0.5"

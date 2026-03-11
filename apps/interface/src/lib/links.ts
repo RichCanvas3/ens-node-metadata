@@ -32,7 +32,7 @@ export function resolveLink(node: TreeNode, chainId: number = 1): ResolvedLink {
   // If it has an ENS name or the node name looks like an ENS name
   if (ensName || node.name.includes('.')) {
     return {
-      url: ensLink(ensName || node.name),
+      url: ensLink(ensName || node.name, chainId),
       type: 'ens',
       label: 'View on ENS',
     }
@@ -56,7 +56,7 @@ export function safeLink(address: string, chainId: number = 1): string {
 }
 
 /**
- * Generate a block explorer link based on chain ID
+ * Generate a block explorer link for an address based on chain ID
  */
 export function explorerLink(address: string, chainId: number = 1): string {
   const explorerBase = getExplorerBase(chainId)
@@ -64,10 +64,29 @@ export function explorerLink(address: string, chainId: number = 1): string {
 }
 
 /**
- * Generate an ENS app link
+ * Generate a block explorer link for a transaction hash based on chain ID
  */
-export function ensLink(name: string): string {
-  return `https://app.ens.domains/${name}`
+export function explorerTxLink(txHash: string, chainId: number = 1): string {
+  const explorerBase = getExplorerBase(chainId)
+  return `${explorerBase}/tx/${txHash}`
+}
+
+const ENS_APP_MAINNET = 'https://app.ens.domains'
+const ENS_APP_SEPOLIA = 'https://sepolia.app.ens.domains'
+
+function getEnsAppBaseUrl(chainId: number): string {
+  return chainId === 11155111 ? ENS_APP_SEPOLIA : ENS_APP_MAINNET
+}
+
+/**
+ * Generate an ENS app link (mainnet or Sepolia based on chainId).
+ */
+export function ensLink(name: string, chainId?: number): string {
+  const base =
+    chainId !== undefined
+      ? getEnsAppBaseUrl(chainId)
+      : getEnsAppBaseUrl(parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? '1', 10))
+  return `${base}/${name}`
 }
 
 /**

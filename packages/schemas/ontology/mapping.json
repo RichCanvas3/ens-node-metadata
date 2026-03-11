@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "baseOntologyUri": "https://ontology.agentictrust.io/",
+  "baseTaxonomyUri": "https://taxonomy.agentictrust.io/",
+  "baseSchemaUri": "https://schemas.agentictrust.io/",
+  "classes": {
+    "agent": {
+      "typeLocalName": "AgentNode",
+      "conceptLocalName": "Agent",
+      "parentClass": "ActorNode",
+      "definition": "This node represents an autonomous software-controlled entity.",
+      "schemaPath": "agent-node.json",
+      "schemaVersion": "1.0.0"
+    },
+    "application": {
+      "typeLocalName": "ApplicationNode",
+      "conceptLocalName": "Application",
+      "parentClass": "ActorNode",
+      "definition": "This node represents a software application, service, or product.",
+      "schemaPath": "application-node.json",
+      "schemaVersion": "1.0.0"
+    },
+    "contract": {
+      "typeLocalName": "ContractNode",
+      "conceptLocalName": "Contract",
+      "parentClass": "EntityNode",
+      "definition": "This node represents, and resolves to, a smart contract.",
+      "schemaPath": "contract-node.json",
+      "schemaVersion": "1.1.1"
+    },
+    "delegate": {
+      "typeLocalName": "DelegateNode",
+      "conceptLocalName": "Delegate",
+      "parentClass": "ActorNode",
+      "definition": "This node represents a voter in on-chain governance, who may or may not have been delegated voting power from others.",
+      "schemaPath": "delegate-node.json",
+      "schemaVersion": "1.0.1"
+    },
+    "grant": {
+      "typeLocalName": "GrantNode",
+      "conceptLocalName": "Grant",
+      "parentClass": "OrganizationalNode",
+      "definition": "This node represents a grant program or funding allocation.",
+      "schemaPath": "grant-node.json",
+      "schemaVersion": "1.0.0"
+    },
+    "group": {
+      "typeLocalName": "GroupNode",
+      "conceptLocalName": "Group",
+      "parentClass": "OrganizationalNode",
+      "definition": "This node represents a logical grouping of multiple child nodes.",
+      "schemaPath": "group-node.json",
+      "schemaVersion": "0.1.4"
+    },
+    "org": {
+      "typeLocalName": "OrganizationNode",
+      "conceptLocalName": "Org",
+      "parentClass": "OrganizationalNode",
+      "definition": "This node represents an organization or sub-organization within a larger entity.",
+      "schemaPath": "org-node.json",
+      "schemaVersion": "1.0.0"
+    },
+    "person": {
+      "typeLocalName": "PersonNode",
+      "conceptLocalName": "Person",
+      "parentClass": "ActorNode",
+      "definition": "This node represents an individual human.",
+      "schemaPath": "person-node.json",
+      "schemaVersion": "1.0.0"
+    },
+    "treasury": {
+      "typeLocalName": "TreasuryNode",
+      "conceptLocalName": "Treasury",
+      "parentClass": "OrganizationalNode",
+      "definition": "This node represents an account for funds that are collectively owned and/or managed.",
+      "schemaPath": "treasury-node.json",
+      "schemaVersion": "1.0.0"
+    },
+    "wallet": {
+      "typeLocalName": "WalletNode",
+      "conceptLocalName": "Wallet",
+      "parentClass": "EntityNode",
+      "definition": "This node's main purpose is to send, receive, and/or store funds.",
+      "schemaPath": "wallet-node.json",
+      "schemaVersion": "1.0.0"
+    }
+  },
+  "conceptsOnly": {
+    "committee": {
+      "prefLabel": "Committee",
+      "definition": "This node represents a formal group with delegated authority to make decisions or provide oversight within a defined scope.",
+      "broader": "GovernanceBody"
+    },
+    "council": {
+      "prefLabel": "Council",
+      "definition": "This node represents a high-level governance body with broad strategic authority and stewardship responsibilities.",
+      "broader": "GovernanceBody"
+    },
+    "workgroup": {
+      "prefLabel": "Workgroup",
+      "definition": "This node represents an operational team focused on executing tasks or work within a specific domain.",
+      "broader": "OperationalUnit"
+    }
+  }
+}

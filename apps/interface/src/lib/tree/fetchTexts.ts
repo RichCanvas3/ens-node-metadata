@@ -22,7 +22,9 @@ export async function fetchTexts(ensName: string, keys: string[]) {
     const batchResults = await Promise.all(
       batch.map((key) => client.getEnsText({ name: ensName, key }))
     )
-    results.push(...batchResults)
+    results.push(
+      ...batchResults.map((v) => (v === null ? undefined : v))
+    )
     if (i + RPC_BATCH_SIZE < keys.length) await delay(RPC_BATCH_DELAY_MS)
   }
   return Object.fromEntries(keys.map((k, i) => [k, results[i]]))

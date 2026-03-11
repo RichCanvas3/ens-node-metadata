@@ -130,6 +130,22 @@ const nodeConfigs: Record<string, NodeTypeConfig> = {
     icon: Building2,
     suggestedCta: 'Click to add organizational unit',
   },
+  Org: {
+    badgeLabel: 'ORG',
+    badgeBg: 'bg-indigo-100',
+    badgeText: 'text-indigo-800',
+    accentColor: '#6366f1',
+    icon: Building2,
+    suggestedCta: 'Click to add organizational unit',
+  },
+  Organization: {
+    badgeLabel: 'ORG',
+    badgeBg: 'bg-indigo-100',
+    badgeText: 'text-indigo-800',
+    accentColor: '#6366f1',
+    icon: Building2,
+    suggestedCta: 'Click to add organizational unit',
+  },
 }
 
 const defaultConfig: NodeTypeConfig = {

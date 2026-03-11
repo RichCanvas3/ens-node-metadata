@@ -14,6 +14,7 @@ import {
 import dagre from '@dagrejs/dagre'
 import { useTreeControlsStore } from '@/stores/tree-controls'
 import { useTreeEditStore } from '@/stores/tree-edits'
+import { getDisplayClass } from '@ens-node-metadata/schemas'
 import type { TreeNode } from '@/lib/tree/types'
 import { DefaultNode, TreasuryNode, SignerNode, BaseNode } from './nodes'
 import { ReferenceEdge } from './edges/ReferenceEdge'
@@ -48,7 +49,7 @@ const FALLBACK_NODE_SIZES: Record<string, NodeDimensions> = {
 }
 
 const getFlowNodeType = (node: TreeNode): string => {
-  const explicitType = (node as any).class || node.texts?.class
+  const explicitType = getDisplayClass(node)
   if (explicitType) {
     // Treasury and Signer keep their dedicated components
     if (explicitType === 'Treasury' || explicitType === 'Signer') return explicitType

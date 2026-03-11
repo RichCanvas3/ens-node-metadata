@@ -162,7 +162,9 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
       try {
         const fetchedTexts = await fetchTexts(indexed.name, indexed.resolver?.texts)
         if (Object.keys(fetchedTexts).length > 0) {
-          node.texts = fetchedTexts
+          node.texts = Object.fromEntries(
+            Object.entries(fetchedTexts).map(([k, v]) => [k, v ?? null]),
+          ) as Record<string, string | null>
         }
       } catch (error) {
         console.warn('Error fetching texts for', indexed.name, error)

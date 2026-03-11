@@ -7,6 +7,9 @@ import { useSchemaStore } from '@/stores/schemas'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useMutationsStore } from '@/stores/mutations'
 import { useWeb3 } from '@/contexts/Web3Provider'
+import { getDisplayClass } from '@ens-node-metadata/schemas'
+import { chainId } from '@/lib/chain'
+import { ensLink, explorerLink } from '@/lib/links'
 import type { TreeNode } from '@/lib/tree/types'
 import { shortAddress } from '@/lib/shortAddress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -435,7 +438,7 @@ export default function TablePage() {
     if (!search.trim()) return rows
     const q = search.toLowerCase()
     return rows.filter(({ node }) => {
-      const currentClass = ((node as any).class || node.texts?.class) as string | undefined
+      const currentClass = getDisplayClass(node)
       const mutation = pendingMutations.get(node.name)
       const pendingClass = mutation?.changes?.class as string | undefined
       const classToSearch = pendingClass || currentClass
@@ -466,8 +469,8 @@ export default function TablePage() {
           return dir * compareByNamespaceHierarchy(parentA, parentB)
         }
         case 'class': {
-          const currentClassA = ((a as any).class || a.texts?.class) ?? ''
-          const currentClassB = ((b as any).class || b.texts?.class) ?? ''
+          const currentClassA = getDisplayClass(a) ?? ''
+          const currentClassB = getDisplayClass(b) ?? ''
           const mutation = pendingMutations.get(a.name)
           const pendingClassA = mutation?.changes?.class as string | undefined
           const mutation2 = pendingMutations.get(b.name)
@@ -502,11 +505,9 @@ export default function TablePage() {
   }
 
   const renderCell = (column: TableColumn, node: TreeNode) => {
-    const ensUrl = `https://app.ens.domains/${node.name}`
-    const addressUrl = node.address
-      ? `https://etherscan.io/address/${node.address}`
-      : null
-    const ownerUrl = `https://etherscan.io/address/${node.owner}`
+    const ensUrl = ensLink(node.name, chainId)
+    const addressUrl = node.address ? explorerLink(node.address, chainId) : null
+    const ownerUrl = explorerLink(node.owner, chainId)
     const displayName = node.name.split('.')[0]
     const parentPath = node.name.split('.').slice(1).join('.') || '—'
 
@@ -538,7 +539,7 @@ export default function TablePage() {
         )
 
       case 'class': {
-        const currentClass = ((node as any).class || node.texts?.class) as string | undefined
+        const currentClass = getDisplayClass(node)
         const pendingClass = getPendingClassChange(node.name)
         const displayClass = pendingClass || currentClass
         const hasPendingClassChange = !!pendingClass

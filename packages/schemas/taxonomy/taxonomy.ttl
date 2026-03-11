@@ -1,0 +1,95 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix atc: <https://taxonomy.agentictrust.io/> .
+@prefix atl: <https://ontology.agentictrust.io/> .
+
+atc:NodeTypes a skos:ConceptScheme ;
+  skos:prefLabel "ENS node type concepts" .
+
+atc:Agent a skos:Concept ;
+  skos:prefLabel "Agent" ;
+  skos:definition "This node represents an autonomous software-controlled entity." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:AgentNode" .
+
+atc:Application a skos:Concept ;
+  skos:prefLabel "Application" ;
+  skos:definition "This node represents a software application, service, or product." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:ApplicationNode" .
+
+atc:Contract a skos:Concept ;
+  skos:prefLabel "Contract" ;
+  skos:definition "This node represents, and resolves to, a smart contract." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:ContractNode" .
+
+atc:Delegate a skos:Concept ;
+  skos:prefLabel "Delegate" ;
+  skos:definition "This node represents a voter in on-chain governance, who may or may not have been delegated voting power from others." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:DelegateNode" .
+
+atc:Grant a skos:Concept ;
+  skos:prefLabel "Grant" ;
+  skos:definition "This node represents a grant program or funding allocation." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:GrantNode" .
+
+atc:Group a skos:Concept ;
+  skos:prefLabel "Group" ;
+  skos:definition "This node represents a logical grouping of multiple child nodes." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:GroupNode" .
+
+atc:Org a skos:Concept ;
+  skos:prefLabel "Org" ;
+  skos:definition "This node represents an organization or sub-organization within a larger entity." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:OrganizationNode" .
+
+atc:Person a skos:Concept ;
+  skos:prefLabel "Person" ;
+  skos:definition "This node represents an individual human." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:PersonNode" .
+
+atc:Treasury a skos:Concept ;
+  skos:prefLabel "Treasury" ;
+  skos:definition "This node represents an account for funds that are collectively owned and/or managed." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:TreasuryNode" .
+
+atc:Wallet a skos:Concept ;
+  skos:prefLabel "Wallet" ;
+  skos:definition "This node's main purpose is to send, receive, and/or store funds." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:WalletNode" .
+
+atc:GovernanceBody a skos:Concept ;
+  skos:prefLabel "Governance body" ;
+  skos:inScheme atc:NodeTypes .
+
+atc:OperationalUnit a skos:Concept ;
+  skos:prefLabel "Operational unit" ;
+  skos:inScheme atc:NodeTypes .
+
+atc:Committee a skos:Concept ;
+  skos:prefLabel "Committee" ;
+  skos:definition "This node represents a formal group with delegated authority to make decisions or provide oversight within a defined scope." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:broader atc:GovernanceBody ;
+  skos:scopeNote "Concept only; no schema in registry yet" .
+
+atc:Council a skos:Concept ;
+  skos:prefLabel "Council" ;
+  skos:definition "This node represents a high-level governance body with broad strategic authority and stewardship responsibilities." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:broader atc:GovernanceBody ;
+  skos:scopeNote "Concept only; no schema in registry yet" .
+
+atc:Workgroup a skos:Concept ;
+  skos:prefLabel "Workgroup" ;
+  skos:definition "This node represents an operational team focused on executing tasks or work within a specific domain." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:broader atc:OperationalUnit ;
+  skos:scopeNote "Concept only; no schema in registry yet" .
