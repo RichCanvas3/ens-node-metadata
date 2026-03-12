@@ -1,0 +1,10 @@
+{
+  "schemaId": "company",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "schemaPath": "packages/schemas/published/company/versions/1.0.0/schema.json"
+    }
+  ]
+}

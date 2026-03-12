@@ -1,74 +1,31 @@
+// generated from ontology (SHACL) - do not edit
 import type { Schema } from "../types";
-import { GITHUB_URL } from "../config/constants";
 
 export const AGENT_SCHEMA: Schema = {
-  $id: `${GITHUB_URL}/schemas/agent/1.0.0`,
+  $id: 'https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json',
   source: 'https://eips.ethereum.org/EIPS/eip-8004',
   title: 'Agent',
   version: '1.0.0',
   description: 'AI agent identity metadata aligned with ERC-8004 registration format.',
   type: 'object' as const,
   properties: {
-    schema: {
-      type: 'string',
-      format: 'uri',
-      description: 'Schema URI for this node (e.g. https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json); prefer sem:schema when using ontology'
-    },
-    class: {
-      type: 'string',
-      default: 'Agent',
-      description: 'High-level identifier of this node type'
-    },
-    'agent-uri': {
-      type: 'string',
-      format: 'uri',
-      description: 'URI to the ERC-8004 registration file',
-    },
-    type: {
-      type: 'string',
-      description: 'Registration file type discriminator',
-    },
-    name: {
-      type: 'string',
-      description: 'Agent display name',
-    },
-    description: {
-      type: 'string',
-      description: 'Natural-language description of the agent',
-    },
-    services: {
-      type: 'string',
-      description: 'Advertised service endpoints',
-    },
-    'x402-support': {
-      type: 'boolean',
-      description: 'Whether x402 payment flow is supported',
-
-    },
-    active: {
-      type: 'string',
-      format: 'boolean',
-      description: 'Whether the agent is currently active',
-    },
-    registrations: {
-      type: 'string',
-      description: 'Cross-chain identity registrations',
-    },
-    'supported-trust': {
-      type: 'string',
-      description: 'Trust models supported by the agent',
-    },
-    'agent-wallet': {
-      type: 'string',
-      description: 'Verified payout wallet for agent operations',
-    },
+    schema: { type: 'string', description: 'Schema URI for this node (e.g. https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json); prefer sem:schema when using ontology', format: 'uri' },
+    class: { type: 'string', description: 'High-level identifier of this node type', default: 'Agent' },
+    'agent-uri': { type: 'string', description: 'URI to the ERC-8004 registration file', format: 'uri' },
+    type: { type: 'string', description: 'Registration file type discriminator' },
+    name: { type: 'string', description: 'Agent display name' },
+    description: { type: 'string', description: 'Natural-language description of the agent' },
+    services: { type: 'string', description: 'Advertised service endpoints' },
+    'x402-support': { type: 'boolean', description: 'Whether x402 payment flow is supported' },
+    active: { type: 'string', description: 'Whether the agent is currently active', format: 'boolean' },
+    registrations: { type: 'string', description: 'Cross-chain identity registrations' },
+    'supported-trust': { type: 'string', description: 'Trust models supported by the agent' },
+    'agent-wallet': { type: 'string', description: 'Verified payout wallet for agent operations' },
+    'managed-by': { type: 'string', description: 'ENS name of the company that manages this agent (e.g. company-name.root.eth)' },
   },
   patternProperties: {
-    '^service(\[[^\]]+\])?$': {
-      type: 'string',
-      description: 'service[name] => endpoint, per ERC-8004 eg. service[MCP] => <ENDPOINT_URL>',
-    }
+    '^service(\[[^\]]+\])?$': { type: 'string', description: 'service[name] => endpoint, per ERC-8004 eg. service[MCP] => <ENDPOINT_URL>' },
   },
   required: ['class'],
-  recommended: ['agent-uri']
+  recommended: ['agent-uri', 'managed-by']
 };

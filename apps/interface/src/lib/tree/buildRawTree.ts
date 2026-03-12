@@ -157,10 +157,15 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
       if (rpcAddress) node.address = rpcAddress
     }
 
-    // If the resolver has texts, fetch them and add them to the node
-    if (indexed.name && indexed.resolver.texts) {
+    // Fetch text records when we have a name and a resolver. Always include canonical
+    // ontology keys (sem:type, sem:schema) so schema resolution works in the editor.
+    const textKeys =
+      indexed.resolver.texts?.length > 0
+        ? [...new Set([...indexed.resolver.texts, 'sem:type', 'sem:schema'])]
+        : ['sem:type', 'sem:schema']
+    if (indexed.name) {
       try {
-        const fetchedTexts = await fetchTexts(indexed.name, indexed.resolver?.texts)
+        const fetchedTexts = await fetchTexts(indexed.name, textKeys)
         if (Object.keys(fetchedTexts).length > 0) {
           node.texts = Object.fromEntries(
             Object.entries(fetchedTexts).map(([k, v]) => [k, v ?? null]),

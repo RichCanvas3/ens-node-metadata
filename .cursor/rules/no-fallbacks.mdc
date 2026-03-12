@@ -1,0 +1,16 @@
+---
+description: No fallbacks — use only explicit/canonical data for resolution and classification
+alwaysApply: true
+---
+
+# No Fallbacks
+
+**Do not add or use fallback logic** for resolving node type, schema, or display class.
+
+- **Resolution** (e.g. in `packages/schemas/src/resolution.ts`): Use only **explicit ENS text records**.
+  - **Display class**: From `sem:type` only. Do not derive from `class` or any other key.
+  - **Schema URI**: From `sem:schema` if present; else from `sem:type` via the resolution table. Do not derive from `class`, `schema` (legacy), or display class.
+- **UI / tree**: Do not infer type or schema when records are missing. If `sem:type` or `sem:schema` is not set, the node is untyped; do not substitute another source.
+- **Data loading**: Do not add “minimal key” or “ensure we fetch these keys” fallbacks to make nodes classify when the subgraph or resolver did not provide them.
+
+Canonical source of truth for type and schema is the ontology and the node’s own `sem:type` / `sem:schema` records. No fallbacks.

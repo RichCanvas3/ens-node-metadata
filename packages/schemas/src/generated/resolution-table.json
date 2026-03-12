@@ -1,5 +1,12 @@
 {
   "byTypeUri": {
+    "https://ontology.agentictrust.io/OrganizationNode": {
+      "displayClass": "Org",
+      "defaultSchemaUri": "https://schemas.agentictrust.io/org-node.json",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/org-node/v1.0.0/schema.json",
+      "schemaVersion": "1.0.0",
+      "schemaId": "org"
+    },
     "https://ontology.agentictrust.io/AIAgentNode": {
       "displayClass": "AIAgent",
       "defaultSchemaUri": "https://schemas.agentictrust.io/agent-node.json",
@@ -42,12 +49,12 @@
       "schemaVersion": "0.1.4",
       "schemaId": "group"
     },
-    "https://ontology.agentictrust.io/OrganizationNode": {
-      "displayClass": "Org",
-      "defaultSchemaUri": "https://schemas.agentictrust.io/org-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/org-node/v1.0.0/schema.json",
+    "https://ontology.agentictrust.io/CompanyNode": {
+      "displayClass": "Company",
+      "defaultSchemaUri": "https://schemas.agentictrust.io/company-node.json",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/company-node/v1.0.0/schema.json",
       "schemaVersion": "1.0.0",
-      "schemaId": "org"
+      "schemaId": "company"
     },
     "https://ontology.agentictrust.io/PersonNode": {
       "displayClass": "Person",
@@ -71,16 +78,16 @@
       "schemaId": "wallet"
     }
   },
-  "legacyClassToTypeUri": {
+  "displayClassToTypeUri": {
+    "Org": "https://ontology.agentictrust.io/OrganizationNode",
+    "Organization": "https://ontology.agentictrust.io/OrganizationNode",
     "AIAgent": "https://ontology.agentictrust.io/AIAgentNode",
     "Application": "https://ontology.agentictrust.io/ApplicationNode",
     "Contract": "https://ontology.agentictrust.io/ContractNode",
     "Delegate": "https://ontology.agentictrust.io/DelegateNode",
     "Grant": "https://ontology.agentictrust.io/GrantNode",
     "Group": "https://ontology.agentictrust.io/GroupNode",
-    "Org": "https://ontology.agentictrust.io/OrganizationNode",
-    "Organization": "https://ontology.agentictrust.io/OrganizationNode",
-    "Organizational Unit": "https://ontology.agentictrust.io/OrganizationNode",
+    "Company": "https://ontology.agentictrust.io/CompanyNode",
     "Person": "https://ontology.agentictrust.io/PersonNode",
     "Treasury": "https://ontology.agentictrust.io/TreasuryNode",
     "Wallet": "https://ontology.agentictrust.io/WalletNode"

@@ -11,6 +11,7 @@ import { type TreeNode } from '@/lib/tree/types'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSchemaStore } from '@/stores/schemas'
 import { useNodeEditorStore } from '@/stores/node-editor'
+import { getDisplayClass } from '@ens-node-metadata/schemas'
 
 interface Props {
   isOpen: boolean
@@ -89,6 +90,19 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
   )
 
   const activeSchema = currentSchemaId ? schemas.find((s) => s.id === currentSchemaId) : null
+  const companyNodesForManagedBy = useMemo(() => {
+    if (!previewTree) return []
+    const out: { value: string; label: string }[] = []
+    const walk = (node: TreeNode) => {
+      if (getDisplayClass(node) === 'Company') {
+        const label = (node.texts?.label ?? node.texts?.name ?? node.name) || node.name
+        out.push({ value: node.name, label: String(label) })
+      }
+      node.children?.forEach(walk)
+    }
+    walk(previewTree)
+    return out
+  }, [previewTree])
   const addressFields = activeSchema?.properties
     ? Object.entries(activeSchema.properties).filter(([key]) => key === 'address')
     : []
@@ -285,6 +299,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
                 activeSchema={activeSchema ?? null}
                 addressFieldKeys={addressFieldKeys}
                 onSelectSchema={handleSelectSchema}
+                companyNodesForManagedBy={companyNodesForManagedBy}
               />
             </div>
 

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { getVersionedSchemaUriForNode } from '@ens-node-metadata/schemas'
 
 type NodeEditFormData = Record<string, any>
 
@@ -72,8 +73,8 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     const nextFormData: NodeEditFormData = {}
     const optionalFieldsWithValues = new Set<string>()
 
-    // Look up the active schema based on the node's schema property
-    const nodeSchemaId = resolveNodeValue(nodeData, 'schema')
+    // Resolve schema from sem:schema or sem:type only (no fallbacks)
+    const nodeSchemaId = getVersionedSchemaUriForNode(nodeData)
     const activeSchema = nodeSchemaId
       ? schemas.find((s: any) => s.id === nodeSchemaId)
       : null

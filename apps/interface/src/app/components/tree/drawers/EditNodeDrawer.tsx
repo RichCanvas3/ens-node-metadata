@@ -6,14 +6,31 @@ import { AddressField } from './AddressField'
 import { SchemaEditor } from './SchemaEditor'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { useSchemaStore } from '@/stores/schemas'
 import { useNodeEditorStore } from '@/stores/node-editor'
+import { getDisplayClass, getVersionedSchemaUriForNode } from '@ens-node-metadata/schemas'
+import { type TreeNode } from '@/lib/tree/types'
+import { fetchTexts } from '@/lib/tree/fetchTexts'
+
+const ONTOLOGY_TEXT_KEYS = [
+  'sem:type',
+  'sem:schema',
+  'sem:schemaVersion',
+  'schema',
+  'class',
+  'description',
+  'url',
+  'name',
+  'label',
+]
 
 export function EditNodeDrawer() {
   const { sourceTree, previewTree } = useTreeData()
   const { schemas, fetchSchemas } = useSchemaStore()
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
+  const [hydratedTexts, setHydratedTexts] = useState<Record<string, Record<string, string | null>>>({})
+  const hydrationFetchedFor = useRef<Set<string>>(new Set())
   const {
     isEditDrawerOpen,
     selectedNode,
@@ -74,8 +91,47 @@ export function EditNodeDrawer() {
   const existingEdit = selectedNode ? getPendingEdit(selectedNode) : undefined
   const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
-  // Get the active schema - either the one selected in this session or the node's existing schema
-  const nodeSchemaId = nodeWithEdits?.schema || nodeWithEdits?.texts?.schema
+  // Merge on-demand fetched texts so schema resolution and form have sem:type / sem:schema
+  const displayNode = useMemo(() => {
+    if (!nodeWithEdits || !selectedNode) return nodeWithEdits
+    const extra = hydratedTexts[selectedNode]
+    if (!extra) return nodeWithEdits
+    return {
+      ...nodeWithEdits,
+      texts: { ...(nodeWithEdits.texts ?? {}), ...extra } as Record<string, string | null>,
+    }
+  }, [nodeWithEdits, selectedNode, hydratedTexts])
+
+  // When drawer opens and node has no schema resolution, fetch ontology texts by ENS name
+  useEffect(() => {
+    if (
+      !isEditDrawerOpen ||
+      !selectedNode ||
+      !nodeWithEdits ||
+      nodeWithEdits.isPendingCreation ||
+      !nodeWithEdits.name
+    )
+      return
+    const name = nodeWithEdits.name
+    if (!name.includes('.')) return
+    if (getVersionedSchemaUriForNode(displayNode)) return
+    if (hydrationFetchedFor.current.has(selectedNode)) return
+    hydrationFetchedFor.current.add(selectedNode)
+    fetchTexts(name, ONTOLOGY_TEXT_KEYS)
+      .then((fetched) => {
+        const asNull = Object.fromEntries(
+          Object.entries(fetched).map(([k, v]) => [k, v ?? null])
+        ) as Record<string, string | null>
+        if (Object.keys(asNull).length > 0) {
+          setHydratedTexts((prev) => ({ ...prev, [selectedNode]: asNull }))
+        }
+      })
+      .catch(() => {})
+      .finally(() => {})
+  }, [isEditDrawerOpen, selectedNode, nodeWithEdits, displayNode])
+
+  // Resolve schema from sem:schema or sem:type only (no fallbacks)
+  const nodeSchemaId = displayNode ? getVersionedSchemaUriForNode(displayNode) : null
   const activeSchema = currentSchemaId
     ? schemas.find((s) => s.id === currentSchemaId)
     : nodeSchemaId
@@ -86,6 +142,21 @@ export function EditNodeDrawer() {
     ? Object.entries(activeSchema.properties).filter(([key]) => key === 'address')
     : []
   const addressFieldKeys = new Set(addressFields.map(([key]) => key))
+
+  // Company nodes under current root (for Agent "managed by" selector)
+  const companyNodesForManagedBy = useMemo(() => {
+    if (!previewTree) return []
+    const out: { value: string; label: string }[] = []
+    const walk = (node: TreeNode) => {
+      if (getDisplayClass(node) === 'Company') {
+        const label = (node.texts?.label ?? node.texts?.name ?? node.name) || node.name
+        out.push({ value: node.name, label: String(label) })
+      }
+      node.children?.forEach(walk)
+    }
+    walk(previewTree)
+    return out
+  }, [previewTree])
 
   // Fetch schemas on mount if not loaded
   useEffect(() => {
@@ -107,12 +178,12 @@ export function EditNodeDrawer() {
     setIsLoadingSchemas(false)
   }
 
-  // Initialize form with current node data (including pending creation edits)
+  // Initialize form with current node data (use displayNode so hydrated texts are included)
   useEffect(() => {
-    if (!nodeWithEdits) return
+    if (!displayNode) return
 
-    initializeEditor(nodeWithEdits, existingEdit, schemas)
-  }, [existingEdit, nodeWithEdits, isPendingCreation, schemas, initializeEditor])
+    initializeEditor(displayNode, existingEdit, schemas)
+  }, [existingEdit, displayNode, isPendingCreation, schemas, initializeEditor])
 
   const handleSave = () => {
     if (!selectedNode || !nodeWithEdits) return
@@ -222,6 +293,7 @@ export function EditNodeDrawer() {
                   addressFieldKeys={addressFieldKeys}
                   onSelectSchema={handleSelectSchema}
                   onRefreshSchemas={handleRefreshSchemas}
+                  companyNodesForManagedBy={companyNodesForManagedBy}
                 />
 
                 {/* Text Records Section */}

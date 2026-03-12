@@ -1,17 +1,39 @@
 # @ens-node-metadata/schemas
 
-A package for managing and publishing ENSIP schema definitions to IPFS.
+A package for managing and publishing ENS node metadata schemas.
 
 Explore existing schemas <https://ens-metadata-docs.vercel.app/schemas/agent>
 
+## Ontology as single source of truth
+
+Class definitions and schema shapes live in **ontology/ontology.ttl** (OWL + SHACL). The generators read Turtle only; do not edit `src/schemas/*.ts` by hand.
+
+```bash
+# Regenerate taxonomy, resolution table, and schema .ts files from ontology.ttl
+pnpm generate
+
+# Or run the steps separately:
+pnpm ontology:generate   # → taxonomy.ttl, resolution-table.json (reads ontology.ttl + concepts-only.ttl)
+pnpm schema:generate     # → src/schemas/*.ts (reads ontology.ttl SHACL shapes)
+```
+
+After changing `ontology/ontology.ttl` or `ontology/concepts-only.ttl`, run `pnpm generate`, then (if needed) `pnpm publish:schema -- --id <schemaId>` to publish a new version.
+
 ## Overview
 
-Schemas are organized into two categories:
+- **Ontology** — `ontology/ontology.ttl` defines OWL classes (with `atl:schemaVersion`, `atl:schemaPath`, `atl:schemaId`) and SHACL NodeShapes (one per node class) with `sh:property`, `sh:path`, `atl:jsonKey`, `atl:recommended`, and optional `atl:patternProperty`. `ontology/concepts-only.ttl` holds SKOS concepts (Committee, Council, Workgroup) with `skos:broader`.
+- **Generated** — `ontology:generate` produces `taxonomy/taxonomy.ttl` and `src/generated/resolution-table.json`. `schema:generate` produces `src/schemas/*.ts`.
+- **ENSIP-denoted schemas** — managed in `src/globals` (e.g. ENSIP-5).
 
-- **Community schemas** — managed in `src/schemas`
-- **ENSIP-denoted schemas** — managed in `src/globals`
+### Three-layer model
 
-Each published schema is versioned, checksummed, and signed with an EIP-712 payload before being pinned to IPFS.
+The ontology is structured in three layers:
+
+1. **Ontology layer** — RDFS/OWL classes and atl: datatype properties with `rdfs:domain` and `rdfs:range`. Defines what the terms mean (e.g. `atl:name`, `atl:description`, `atl:agentWallet`). Semantic type is expressed by `rdf:type` (e.g. `rdf:type atl:AIAgentNode`).
+
+2. **Shape layer** — SHACL NodeShapes with `sh:targetClass` and `sh:property` using **sh:path** to atl: properties. Constraints (e.g. `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:pattern`, `sh:in`) live here. Each property constraint points at a real RDF property via `sh:path`.
+
+3. **JSON serialization layer** — Custom atl: terms (`atl:jsonKey`, `atl:schemaTitle`, `atl:schemaPath`, `atl:format`, `atl:default`, etc.) define how to project to JSON Schema and ENS text records. These are not RDF semantics; they are the publishing profile. **RDF truth = rdf:type + property IRIs; JSON keys = atl:jsonKey.**
 
 ## Usage
 
@@ -62,38 +84,13 @@ To suggest a new schema or changes to an existing one, open a pull request again
 
 ### Adding a new schema
 
-1. Create a new file in `src/schemas/` (e.g. `src/schemas/myschema.ts`).
-2. Export a constant that satisfies the `Schema` interface from `src/types.ts`:
-
-```ts
-import type { Schema } from "../types";
-import { GITHUB_URL } from "../config/constants";
-
-export const MY_SCHEMA: Schema = {
-  $id: `${GITHUB_URL}/schemas/myschema/1.0.0`,
-  source: 'https://link-to-relevant-standard-or-eip',
-  title: 'MySchema',
-  version: '1.0.0',
-  description: 'A short description of what this schema represents.',
-  type: 'object',
-  properties: {
-    class: {
-      type: 'string',
-      default: 'MySchema',
-      description: 'High-level identifier of this node type',
-    },
-    // ...
-  },
-  required: ['class'],
-  recommended: [],
-};
-```
-
-3. Register the schema in `src/index.ts` by importing it and adding it to the `SCHEMAS` array.
+1. In `ontology/ontology.ttl`: add an OWL class (e.g. `atl:MyNode a owl:Class ; ... atl:schemaId "my" ; atl:schemaVersion "1.0.0" ; atl:schemaPath "my-node.json" ; ...`) and a SHACL NodeShape with `sh:targetClass atl:MyNode`, `atl:schemaTitle`, `atl:schemaDescription`, `sh:property` (blank nodes with `atl:jsonKey`, `sh:datatype`, `sh:description`, `sh:minCount`, etc.), and optional `atl:recommended`, `atl:patternProperty`.
+2. Run `pnpm generate` to produce `taxonomy/taxonomy.ttl`, `resolution-table.json`, and `src/schemas/my.ts`.
+3. Add the new schema to the `SCHEMAS` array in `src/index.ts` (import and list it).
 
 ### Modifying an existing schema
 
-Edit the relevant file in `src/schemas/` (or `src/globals/` for ENSIP-denoted schemas). Use the following as a guide for choosing a version bump:
+Edit the class and its SHACL shape in `ontology/ontology.ttl` (properties via `sh:property` and `atl:jsonKey`, `atl:recommended`, `atl:schemaVersion`, etc.). Run `pnpm generate`. Use the following as a guide for choosing a version bump:
 
 | Change type | Bump |
 |---|---|

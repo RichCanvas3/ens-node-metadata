@@ -18,6 +18,8 @@ interface SchemaEditorProps {
   onRefreshSchemas?: () => Promise<void>
   /** When set, only these node classes are shown in the schema dropdown (e.g. create flow: Treasury, Grant, Delegate only) */
   allowedClasses?: string[]
+  /** Company nodes under current root; when set, "managed-by" is rendered as a select of these (for Agent) */
+  companyNodesForManagedBy?: { value: string; label: string }[]
 }
 
 export function SchemaEditor({
@@ -26,6 +28,7 @@ export function SchemaEditor({
   onSelectSchema,
   onRefreshSchemas,
   allowedClasses,
+  companyNodesForManagedBy,
 }: SchemaEditorProps) {
   const {
     formData,
@@ -256,7 +259,20 @@ export function SchemaEditor({
                       </button>
                     )}
                   </div>
-                  {isTextArea ? (
+                  {key === 'managed-by' && companyNodesForManagedBy && companyNodesForManagedBy.length >= 0 ? (
+                    <select
+                      value={formData[key] ?? ''}
+                      onChange={(e) => updateField(key, e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
+                    >
+                      <option value="">— Select company —</option>
+                      {companyNodesForManagedBy.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label} ({opt.value})
+                        </option>
+                      ))}
+                    </select>
+                  ) : isTextArea ? (
                     <textarea
                       value={formData[key] ?? ''}
                       onChange={(e) => updateField(key, e.target.value)}
@@ -327,7 +343,20 @@ export function SchemaEditor({
                       Clear
                     </button>
                   </div>
-                  {isTextArea ? (
+                  {key === 'managed-by' && companyNodesForManagedBy && companyNodesForManagedBy.length >= 0 ? (
+                    <select
+                      value={formData[key] ?? ''}
+                      onChange={(e) => updateField(key, e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
+                    >
+                      <option value="">— Select company —</option>
+                      {companyNodesForManagedBy.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label} ({opt.value})
+                        </option>
+                      ))}
+                    </select>
+                  ) : isTextArea ? (
                     <textarea
                       value={formData[key] ?? ''}
                       onChange={(e) => updateField(key, e.target.value)}

@@ -1,202 +1,152 @@
 #!/usr/bin/env node
 /**
- * Generates T-Box (OWL/RDFS ontology) and C-Box (SKOS taxonomy) from
- * mapping.json. Hierarchy is grounded in PROV-O (prov:Agent, prov:Entity,
- * prov:Person, prov:Organization, prov:SoftwareAgent, prov:Role).
+ * Reads ontology.ttl (and concepts-only.ttl), emits taxonomy.ttl and resolution-table.json.
+ * ontology.ttl is the source of truth (not generated). Hierarchy is PROV-O-grounded.
  * Run: pnpm --filter @ens-node-metadata/schemas ontology:generate
  */
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import N3 from 'n3'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const packagesRoot = path.resolve(__dirname, '..')
 const ontologyDir = path.join(packagesRoot, 'ontology')
 const taxonomyDir = path.join(packagesRoot, 'taxonomy')
-const mappingPath = path.join(ontologyDir, 'mapping.json')
+const ontologyPath = path.join(ontologyDir, 'ontology.ttl')
+const conceptsOnlyPath = path.join(ontologyDir, 'concepts-only.ttl')
 
 const ONTOLOGY_BASE = 'https://ontology.agentictrust.io/'
 const TAXONOMY_BASE = 'https://taxonomy.agentictrust.io/'
 const SCHEMA_BASE = 'https://schemas.agentictrust.io/'
-const PROV = 'http://www.w3.org/ns/prov#'
 
-interface ClassMapping {
-  typeLocalName: string
-  conceptLocalName: string
-  parentClass?: string
-  parentClassUri?: string
-  definition: string
-  schemaPath: string
-  schemaVersion: string
-  seeAlso?: string
+const ATL = ONTOLOGY_BASE.endsWith('/') ? ONTOLOGY_BASE : ONTOLOGY_BASE + '/'
+const ATC = TAXONOMY_BASE.endsWith('/') ? TAXONOMY_BASE : TAXONOMY_BASE + '/'
+
+const RDFS_LABEL = 'http://www.w3.org/2000/01/rdf-schema#label'
+const RDFS_COMMENT = 'http://www.w3.org/2000/01/rdf-schema#comment'
+const ATL_DEFAULT_SCHEMA = 'https://ontology.agentictrust.io/defaultSchema'
+const ATL_SCHEMA_VERSION = 'https://ontology.agentictrust.io/schemaVersion'
+const ATL_SCHEMA_PATH = 'https://ontology.agentictrust.io/schemaPath'
+const ATL_SCHEMA_ID = 'https://ontology.agentictrust.io/schemaId'
+
+function loadQuads(turtlePath: string): N3.Quad[] {
+  const content = fs.readFileSync(turtlePath, 'utf-8')
+  const parser = new N3.Parser()
+  return parser.parse(content)
 }
 
-interface ConceptOnly {
-  prefLabel: string
-  definition: string
-  broader?: string
+function getObjectValue(quads: N3.Quad[], subject: string, predicate: string): string | null {
+  const quad = quads.find((q) => q.subject.value === subject && q.predicate.value === predicate)
+  if (!quad) return null
+  if (quad.object.termType === 'Literal') return (quad.object as N3.Literal).value
+  if (quad.object.termType === 'NamedNode') return (quad.object as N3.NamedNode).value
+  return null
 }
 
-interface Mapping {
-  baseOntologyUri?: string
-  baseTaxonomyUri?: string
-  baseSchemaUri?: string
-  classes: Record<string, ClassMapping>
-  conceptsOnly?: Record<string, ConceptOnly>
-}
-
-function loadJson<T>(filePath: string): T {
-  const raw = fs.readFileSync(filePath, 'utf-8')
-  return JSON.parse(raw) as T
+function versionedSchemaUrl(schemaPath: string, version: string): string {
+  const family = schemaPath.replace(/\.json$/i, '')
+  return `${SCHEMA_BASE}${family}/v${version}/schema.json`
 }
 
 function escapeTurtle(str: string): string {
   return `"${str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
 }
 
-function stableSchemaUrl(base: string, schemaPath: string): string {
-  const b = base.endsWith('/') ? base : base + '/'
-  return b + schemaPath
-}
-
-function versionedSchemaUrl(base: string, schemaPath: string, version: string): string {
-  const b = base.endsWith('/') ? base : base + '/'
-  const family = schemaPath.replace(/\.json$/i, '')
-  return `${b}${family}/v${version}/schema.json`
-}
-
 function main() {
-  const mapping = loadJson<Mapping>(mappingPath)
-  const ontologyBase = mapping.baseOntologyUri || ONTOLOGY_BASE
-  const taxonomyBase = mapping.baseTaxonomyUri || TAXONOMY_BASE
-  const schemaBase = mapping.baseSchemaUri || SCHEMA_BASE
-
-  if (!fs.existsSync(ontologyDir)) fs.mkdirSync(ontologyDir, { recursive: true })
+  if (!fs.existsSync(ontologyPath)) {
+    console.error('ontology.ttl not found at', ontologyPath)
+    process.exit(1)
+  }
   if (!fs.existsSync(taxonomyDir)) fs.mkdirSync(taxonomyDir, { recursive: true })
 
-  const atl = ontologyBase.endsWith('/') ? ontologyBase : ontologyBase + '/'
-  const atc = taxonomyBase.endsWith('/') ? taxonomyBase : taxonomyBase + '/'
-
-  // --- T-Box: PROV-O-grounded ontology ---
-  const tboxLines: string[] = [
-    `@prefix atl: <${atl}> .`,
-    `@prefix prov: <${PROV}> .`,
-    `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .`,
-    `@prefix owl: <http://www.w3.org/2002/07/owl#> .`,
-    `@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .`,
-    ``,
-    `# ENS semantic node (root for this ontology)`,
-    `atl:EnsNode a owl:Class ;`,
-    `  rdfs:label "ENS semantic node" .`,
-    ``,
-    `# Default schema: stable URL for this type. ENS may pin a versioned URL via sem:schema.`,
-    `atl:defaultSchema a owl:ObjectProperty ;`,
-    `  rdfs:label "default schema" .`,
-    ``,
-    `# atl:OrganizationNode for org structure (Group, governance units, etc.)`,
-    `atl:OrganizationNode a owl:Class ;`,
-    `  rdfs:subClassOf prov:Organization ;`,
-    `  rdfs:label "Organization node" .`,
-    ``,
-    `atl:GovernanceBody a owl:Class ;`,
-    `  rdfs:subClassOf atl:OrganizationNode ;`,
-    `  rdfs:label "Governance body" .`,
-    ``,
-    `atl:OperationalUnit a owl:Class ;`,
-    `  rdfs:subClassOf atl:OrganizationNode ;`,
-    `  rdfs:label "Operational unit" .`,
-    ``,
-    `# Node classes: subClassOf PROV-O or atl classes`,
-  ]
-
-  for (const [_schemaId, classMapping] of Object.entries(mapping.classes)) {
-    const stableUri = stableSchemaUrl(schemaBase, classMapping.schemaPath)
-    const typeUri = `atl:${classMapping.typeLocalName}`
-    const parentRef = classMapping.parentClassUri
-      ? `<${classMapping.parentClassUri}>`
-      : `atl:${classMapping.parentClass}`
-    const lines: string[] = [
-      `${typeUri} a owl:Class ;`,
-      `  rdfs:subClassOf ${parentRef} ;`,
-      `  atl:defaultSchema <${stableUri}> ;`,
-      `  rdfs:label ${escapeTurtle(classMapping.conceptLocalName)} ;`,
-      `  rdfs:comment ${escapeTurtle(classMapping.definition)} .`,
-    ]
-    if (classMapping.seeAlso) {
-      lines[0] = `${typeUri} a owl:Class ;`
-      lines.splice(2, 0, `  rdfs:seeAlso <${classMapping.seeAlso}> ;`)
-    }
-    tboxLines.push(...lines, '')
+  let quads = loadQuads(ontologyPath)
+  if (fs.existsSync(conceptsOnlyPath)) {
+    quads = quads.concat(loadQuads(conceptsOnlyPath))
   }
 
-  const tboxPath = path.join(ontologyDir, 'ontology.ttl')
-  fs.writeFileSync(tboxPath, tboxLines.join('\n'), 'utf-8')
-  console.log('Wrote T-Box:', tboxPath)
+  // Find all node classes (subjects that have atl:schemaId)
+  const schemaIdQuads = quads.filter((q) => q.predicate.value === ATL_SCHEMA_ID)
+  const nodeClasses: Array<{
+    typeUri: string
+    schemaId: string
+    displayClass: string
+    definition: string
+    defaultSchemaUri: string
+    schemaVersion: string
+    schemaPath: string
+  }> = []
 
-  // --- Resolution table ---
+  for (const q of schemaIdQuads) {
+    const subject = q.subject.value
+    if (!subject.startsWith(ATL) || !subject.endsWith('Node')) continue
+    const schemaId = (q.object as N3.Literal).value
+    const defaultSchema = getObjectValue(quads, subject, ATL_DEFAULT_SCHEMA)
+    const schemaVersion = getObjectValue(quads, subject, ATL_SCHEMA_VERSION)
+    const schemaPath = getObjectValue(quads, subject, ATL_SCHEMA_PATH)
+    const label = getObjectValue(quads, subject, RDFS_LABEL)
+    const comment = getObjectValue(quads, subject, RDFS_COMMENT)
+    if (!defaultSchema || !schemaVersion || !schemaPath || !label) continue
+    nodeClasses.push({
+      typeUri: subject,
+      schemaId,
+      displayClass: label,
+      definition: comment || '',
+      defaultSchemaUri: defaultSchema,
+      schemaVersion,
+      schemaPath,
+    })
+  }
+
+  // Resolution table
   const byTypeUri: Record<
     string,
-    {
-      displayClass: string
-      defaultSchemaUri: string
-      versionedSchemaUri: string
-      schemaVersion: string
-      schemaId: string
-    }
+    { displayClass: string; defaultSchemaUri: string; versionedSchemaUri: string; schemaVersion: string; schemaId: string }
   > = {}
-  const legacyClassToTypeUri: Record<string, string> = {}
-  for (const [schemaId, classMapping] of Object.entries(mapping.classes)) {
-    const typeUri = `${atl}${classMapping.typeLocalName}`
-    const defaultSchemaUri = stableSchemaUrl(schemaBase, classMapping.schemaPath)
-    const versionedSchemaUri = versionedSchemaUrl(
-      schemaBase,
-      classMapping.schemaPath,
-      classMapping.schemaVersion
-    )
-    const entry = {
-      displayClass: classMapping.conceptLocalName,
-      defaultSchemaUri,
-      versionedSchemaUri,
-      schemaVersion: classMapping.schemaVersion,
-      schemaId,
+  const displayClassToTypeUri: Record<string, string> = {}
+  for (const c of nodeClasses) {
+    byTypeUri[c.typeUri] = {
+      displayClass: c.displayClass,
+      defaultSchemaUri: c.defaultSchemaUri,
+      versionedSchemaUri: versionedSchemaUrl(c.schemaPath, c.schemaVersion),
+      schemaVersion: c.schemaVersion,
+      schemaId: c.schemaId,
     }
-    byTypeUri[typeUri] = entry
-    legacyClassToTypeUri[classMapping.conceptLocalName] = typeUri
-    if (classMapping.conceptLocalName === 'Org') {
-      legacyClassToTypeUri['Organization'] = typeUri
-      legacyClassToTypeUri['Organizational Unit'] = typeUri
-    }
+    displayClassToTypeUri[c.displayClass] = c.typeUri
+    if (c.displayClass === 'Org') displayClassToTypeUri['Organization'] = c.typeUri
   }
-  const resolutionTable = { byTypeUri, legacyClassToTypeUri }
+  const resolutionTable = { byTypeUri, displayClassToTypeUri }
   const generatedDir = path.join(packagesRoot, 'src', 'generated')
   if (!fs.existsSync(generatedDir)) fs.mkdirSync(generatedDir, { recursive: true })
-  const resolutionTablePath = path.join(generatedDir, 'resolution-table.json')
-  fs.writeFileSync(resolutionTablePath, JSON.stringify(resolutionTable, null, 2), 'utf-8')
-  console.log('Wrote resolution table:', resolutionTablePath)
+  fs.writeFileSync(
+    path.join(generatedDir, 'resolution-table.json'),
+    JSON.stringify(resolutionTable, null, 2),
+    'utf-8'
+  )
+  console.log('Wrote resolution table')
 
-  // --- C-Box (SKOS taxonomy) ---
+  // Taxonomy (C-Box)
   const cboxLines: string[] = [
     `@prefix skos: <http://www.w3.org/2004/02/skos/core#> .`,
-    `@prefix atc: <${atc}> .`,
-    `@prefix atl: <${atl}> .`,
+    `@prefix atc: <${ATC}> .`,
+    `@prefix atl: <${ONTOLOGY_BASE}> .`,
     ``,
     `atc:NodeTypes a skos:ConceptScheme ;`,
     `  skos:prefLabel "ENS node type concepts" .`,
     ``,
   ]
-
-  for (const [_schemaId, classMapping] of Object.entries(mapping.classes)) {
-    const conceptName = classMapping.conceptLocalName.replace(/\s+/g, '')
+  for (const c of nodeClasses) {
+    const conceptName = c.displayClass.replace(/\s+/g, '')
+    const typeLocalName = c.typeUri.slice(ATL.length)
     cboxLines.push(
       `atc:${conceptName} a skos:Concept ;`,
-      `  skos:prefLabel ${escapeTurtle(classMapping.conceptLocalName)} ;`,
-      `  skos:definition ${escapeTurtle(classMapping.definition)} ;`,
+      `  skos:prefLabel ${escapeTurtle(c.displayClass)} ;`,
+      `  skos:definition ${escapeTurtle(c.definition)} ;`,
       `  skos:inScheme atc:NodeTypes ;`,
-      `  skos:scopeNote "Maps to atl:${classMapping.typeLocalName}" .`,
-      ``,
+      `  skos:scopeNote "Maps to atl:${typeLocalName}" .`,
+      ``
     )
   }
-
   cboxLines.push(
     `atc:GovernanceBody a skos:Concept ;`,
     `  skos:prefLabel "Governance body" ;`,
@@ -205,27 +155,42 @@ function main() {
     `atc:OperationalUnit a skos:Concept ;`,
     `  skos:prefLabel "Operational unit" ;`,
     `  skos:inScheme atc:NodeTypes .`,
-    ``,
+    ``
   )
-
-  for (const [_key, concept] of Object.entries(mapping.conceptsOnly || {})) {
-    const safeName = concept.prefLabel.replace(/\s+/g, '')
+  // Concepts from concepts-only.ttl (Committee, Council, Workgroup) - atc: namespace
+  const SKOS_PREF_LABEL = 'http://www.w3.org/2004/02/skos/core#prefLabel'
+  const SKOS_DEFINITION = 'http://www.w3.org/2004/02/skos/core#definition'
+  const SKOS_IN_SCHEME = 'http://www.w3.org/2004/02/skos/core#inScheme'
+  const SKOS_BROADER = 'http://www.w3.org/2004/02/skos/core#broader'
+  const conceptQuads = quads.filter((q) => q.predicate.value === SKOS_PREF_LABEL)
+  const atcSubjects = new Set<string>()
+  for (const q of conceptQuads) {
+    if (q.subject.value.startsWith(TAXONOMY_BASE) && q.subject.value !== `${TAXONOMY_BASE}NodeTypes`)
+      atcSubjects.add(q.subject.value)
+  }
+  for (const subj of atcSubjects) {
+    const prefLabel = getObjectValue(quads, subj, SKOS_PREF_LABEL)
+    const definition = getObjectValue(quads, subj, SKOS_DEFINITION)
+    const inScheme = quads.find((q) => q.subject.value === subj && q.predicate.value === SKOS_IN_SCHEME)
+    const broader = quads.find((q) => q.subject.value === subj && q.predicate.value === SKOS_BROADER)
+    if (!prefLabel || !inScheme) continue
+    const localName = subj.slice(ATC.length)
     const lines = [
-      `atc:${safeName} a skos:Concept ;`,
-      `  skos:prefLabel ${escapeTurtle(concept.prefLabel)} ;`,
-      `  skos:definition ${escapeTurtle(concept.definition)} ;`,
+      `atc:${localName} a skos:Concept ;`,
+      `  skos:prefLabel ${escapeTurtle(prefLabel)} ;`,
+      `  skos:definition ${escapeTurtle(definition || '')} ;`,
       `  skos:inScheme atc:NodeTypes ;`,
     ]
-    if (concept.broader) {
-      lines.push(`  skos:broader atc:${concept.broader} ;`)
+    if (broader && broader.object.termType === 'NamedNode') {
+      const broaderLocal = (broader.object as N3.NamedNode).value.slice(ATC.length)
+      lines.push(`  skos:broader atc:${broaderLocal} ;`)
     }
     lines.push(`  skos:scopeNote "Concept only; no schema in registry yet" .`, '')
     cboxLines.push(...lines)
   }
 
-  const cboxPath = path.join(taxonomyDir, 'taxonomy.ttl')
-  fs.writeFileSync(cboxPath, cboxLines.join('\n'), 'utf-8')
-  console.log('Wrote C-Box:', cboxPath)
+  fs.writeFileSync(path.join(taxonomyDir, 'taxonomy.ttl'), cboxLines.join('\n'), 'utf-8')
+  console.log('Wrote C-Box: taxonomy.ttl')
 }
 
 main()

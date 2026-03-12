@@ -31,6 +31,7 @@ interface SuggestionsDialogProps {
 const NODE_SUGGESTIONS: { id: string; title: string; description: string }[] = [
   { id: 'aiagent', title: 'AI Agent', description: 'This node represents an AI-driven software agent capable of autonomous or semi-autonomous action.' },
   { id: 'application', title: 'Application', description: 'This node represents a software application, service, or product.' },
+  { id: 'company', title: 'Company', description: 'Create a company ENS record; is-a Organization.' },
   { id: 'contract', title: 'Contract', description: 'This node represents, and resolves to, a smart contract.' },
   { id: 'delegate', title: 'Delegate', description: 'Publish your delegate statement and conflict of interest; represents a voter in on-chain governance.' },
   { id: 'grant', title: 'Grant', description: 'Create a node to represent a grant program or funding allocation.' },

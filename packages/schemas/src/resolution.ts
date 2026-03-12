@@ -1,6 +1,6 @@
 /**
- * Resolution layer: map ENS node text records (sem:type, sem:schema) to display class and schema URI.
- * Ontology-only: no legacy class/schema fallback. Rule: prefer sem:schema if present; else schema from sem:type.
+ * Resolution: map ENS node text records (sem:type, sem:schema) to display class and schema URI.
+ * Prefer sem:schema if present; else schema from sem:type.
  */
 
 import resolutionTable from './generated/resolution-table.json' with { type: 'json' }
@@ -12,9 +12,9 @@ type ResolutionEntry = {
   schemaVersion: string
 }
 
-const { byTypeUri, legacyClassToTypeUri } = resolutionTable as {
+const { byTypeUri, displayClassToTypeUri } = resolutionTable as {
   byTypeUri: Record<string, ResolutionEntry>
-  legacyClassToTypeUri: Record<string, string>
+  displayClassToTypeUri: Record<string, string>
 }
 
 const SEM_TYPE_KEYS = ['sem:type', 'sem\\:type'] as const
@@ -52,7 +52,7 @@ export function getSchemaUriFromNode(node: NodeLike): string | undefined {
 
 /**
  * Get the display class label for the node (for badges, config lookup).
- * Resolves from sem:type only.
+ * Resolves from sem:type only. No fallbacks.
  */
 export function getDisplayClass(node: NodeLike): string | undefined {
   const typeUri = getTypeUri(node)
@@ -66,7 +66,7 @@ export function getDisplayClass(node: NodeLike): string | undefined {
  * Used when writing ENS records to store sem:type alongside or instead of class.
  */
 export function getTypeUriForDisplayClass(displayClass: string): string | undefined {
-  return legacyClassToTypeUri[displayClass]
+  return displayClassToTypeUri[displayClass]
 }
 
 /**
@@ -74,7 +74,7 @@ export function getTypeUriForDisplayClass(displayClass: string): string | undefi
  * e.g. https://schemas.agentictrust.io/agent-node.json
  */
 export function getDefaultSchemaUriForDisplayClass(displayClass: string): string | undefined {
-  const typeUri = legacyClassToTypeUri[displayClass]
+  const typeUri = displayClassToTypeUri[displayClass]
   if (!typeUri) return undefined
   return byTypeUri[typeUri]?.defaultSchemaUri
 }
@@ -84,7 +84,7 @@ export function getDefaultSchemaUriForDisplayClass(displayClass: string): string
  * e.g. https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json
  */
 export function getVersionedSchemaUriForDisplayClass(displayClass: string): string | undefined {
-  const typeUri = legacyClassToTypeUri[displayClass]
+  const typeUri = displayClassToTypeUri[displayClass]
   if (!typeUri) return undefined
   return byTypeUri[typeUri]?.versionedSchemaUri
 }
@@ -93,7 +93,7 @@ export function getVersionedSchemaUriForDisplayClass(displayClass: string): stri
  * Get the schema version string for a display class (e.g. "1.0.0").
  */
 export function getSchemaVersionForDisplayClass(displayClass: string): string | undefined {
-  const typeUri = legacyClassToTypeUri[displayClass]
+  const typeUri = displayClassToTypeUri[displayClass]
   if (!typeUri) return undefined
   return byTypeUri[typeUri]?.schemaVersion
 }
@@ -109,4 +109,17 @@ export function getSchemaUriForNode(node: NodeLike): string | undefined {
   if (!typeUri) return undefined
   const entry = byTypeUri[typeUri]
   return entry?.defaultSchemaUri
+}
+
+/**
+ * Get the versioned schema URI for the node (for UI schema dropdown match).
+ * sem:schema if present; else from sem:type. No fallbacks.
+ */
+export function getVersionedSchemaUriForNode(node: NodeLike): string | undefined {
+  const explicitSchema = getSchemaUriFromNode(node)
+  if (explicitSchema) return explicitSchema
+  const typeUri = getTypeUri(node)
+  if (!typeUri) return undefined
+  const entry = byTypeUri[typeUri]
+  return entry?.versionedSchemaUri
 }

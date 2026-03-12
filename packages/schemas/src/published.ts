@@ -3,13 +3,6 @@ import registry from '../published/_registry.json'
 export interface PublishedVersionEntry {
   schemaPath: string
   schema?: any
-  /** @deprecated legacy IPFS; not written by publish scripts */
-  cid?: string
-  /** @deprecated legacy; not written by publish scripts */
-  checksum?: string
-  /** @deprecated legacy; not written by publish scripts */
-  timestamp?: number
-  meta?: any
 }
 
 export interface PublishedSchemaData {
@@ -22,9 +15,8 @@ export interface PublishedRegistry {
 }
 
 /**
- * Legacy: loads registry (IPFS CIDs) and local schema files.
- * The interface app uses the ontology-based loader (load-schemas-node + /api/schemas) instead.
- * This export remains for CLI and other consumers that still use the registry.
+ * Loads the published registry and schema JSON files from disk.
+ * The interface app uses the ontology-based loader (load-schemas-node + /api/schemas).
  */
 export async function getPublishedRegistry(): Promise<PublishedRegistry> {
   const enhancedRegistry: PublishedRegistry = {

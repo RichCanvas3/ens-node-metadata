@@ -1,0 +1,20 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix atc: <https://taxonomy.agentictrust.io/> .
+
+atc:Committee a skos:Concept ;
+  skos:prefLabel "Committee" ;
+  skos:definition "A formal group with delegated authority to make decisions or provide oversight within a defined scope." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:broader atc:GovernanceBody .
+
+atc:Council a skos:Concept ;
+  skos:prefLabel "Council" ;
+  skos:definition "A high-level governance body with broad strategic authority and stewardship responsibilities." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:broader atc:GovernanceBody .
+
+atc:Workgroup a skos:Concept ;
+  skos:prefLabel "Workgroup" ;
+  skos:definition "An operational team focused on executing tasks or work within a specific domain." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:broader atc:OperationalUnit .

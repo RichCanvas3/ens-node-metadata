@@ -8,7 +8,9 @@
   "scripts": {
     "publish:schema": "tsx ./scripts/publish-schema.ts",
     "publish:globals": "tsx ./scripts/publish-globals.ts",
-    "ontology:generate": "tsx ./scripts/generate-ontology.ts"
+    "ontology:generate": "tsx ./scripts/generate-ontology.ts",
+    "schema:generate": "tsx ./scripts/generate-schemas.ts",
+    "generate": "pnpm ontology:generate && pnpm schema:generate"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -19,7 +21,8 @@
     "./latest": "./published/_latest.json"
   },
   "dependencies": {
-    "@ens-node-metadata/shared": "workspace:*"
+    "@ens-node-metadata/shared": "workspace:*",
+    "n3": "^1.26.0"
   },
   "devDependencies": {
     "@types/node": "^25.2.3",

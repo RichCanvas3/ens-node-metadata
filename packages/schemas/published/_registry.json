@@ -62,10 +62,13 @@
       }
     },
     "org": {
-      "latest": "0.1.8",
+      "latest": "1.0.0",
       "published": {
         "0.1.8": {
           "schemaPath": "packages/schemas/published/org/versions/0.1.8/schema.json"
+        },
+        "1.0.0": {
+          "schemaPath": "packages/schemas/published/org/versions/1.0.0/schema.json"
         }
       }
     },
@@ -98,6 +101,14 @@
       "published": {
         "1.0.0": {
           "schemaPath": "packages/schemas/published/globals/versions/1.0.0/schema.json"
+        }
+      }
+    },
+    "company": {
+      "latest": "1.0.0",
+      "published": {
+        "1.0.0": {
+          "schemaPath": "packages/schemas/published/company/versions/1.0.0/schema.json"
         }
       }
     }

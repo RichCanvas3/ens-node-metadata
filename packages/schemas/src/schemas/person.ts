@@ -1,29 +1,17 @@
+// generated from ontology (SHACL) - do not edit
 import type { Schema } from "../types";
-import { GITHUB_URL } from "../config/constants";
-import { ENSIP5 } from "../globals/ensip-5";
-
 
 export const PERSON_SCHEMA: Schema = {
-  $id: `${GITHUB_URL}/schemas/person/1.0.0`,
-  source: GITHUB_URL,
+  $id: 'https://schemas.agentictrust.io/person-node/v1.0.0/schema.json',
+  source: 'https://schemas.agentictrust.io/',
   title: 'Person',
   version: '1.0.0',
   description: 'A person.',
   type: 'object' as const,
   properties: {
-    class: {
-      type: 'string',
-      default: 'Person',
-      description: 'High-level identifier of this node type',
-      examples: ['Person', 'Human', 'Signer', 'Officer', 'Employee', 'Secretary'],
-    },
-    'full-name': {
-      type: 'string',
-      description: 'Full legal or preferred name',
-    },
-    'title': {
-      type: 'string',
-      description: 'Title within the organization, if any',
-    },
+    class: { type: 'string', description: 'High-level identifier of this node type', default: 'Person', enum: ['Person', 'Human', 'Signer', 'Officer', 'Employee', 'Secretary'] },
+    'full-name': { type: 'string', description: 'Full legal or preferred name' },
+    title: { type: 'string', description: 'Title within the organization, if any' },
   },
-}
+  required: ['class']
+};

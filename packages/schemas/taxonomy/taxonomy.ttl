@@ -5,6 +5,12 @@
 atc:NodeTypes a skos:ConceptScheme ;
   skos:prefLabel "ENS node type concepts" .
 
+atc:Org a skos:Concept ;
+  skos:prefLabel "Org" ;
+  skos:definition "This node represents an organization or sub-organization within a larger entity." ;
+  skos:inScheme atc:NodeTypes ;
+  skos:scopeNote "Maps to atl:OrganizationNode" .
+
 atc:AIAgent a skos:Concept ;
   skos:prefLabel "AIAgent" ;
   skos:definition "This node represents an AI-driven software agent capable of autonomous or semi-autonomous action." ;
@@ -41,11 +47,11 @@ atc:Group a skos:Concept ;
   skos:inScheme atc:NodeTypes ;
   skos:scopeNote "Maps to atl:GroupNode" .
 
-atc:Org a skos:Concept ;
-  skos:prefLabel "Org" ;
-  skos:definition "This node represents an organization or sub-organization within a larger entity." ;
+atc:Company a skos:Concept ;
+  skos:prefLabel "Company" ;
+  skos:definition "This node represents a company; is-a Organization." ;
   skos:inScheme atc:NodeTypes ;
-  skos:scopeNote "Maps to atl:OrganizationNode" .
+  skos:scopeNote "Maps to atl:CompanyNode" .
 
 atc:Person a skos:Concept ;
   skos:prefLabel "Person" ;

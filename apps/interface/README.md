@@ -49,7 +49,7 @@ pnpm dlx shadcn add button
 The following on-chain writes are supported via `@ensdomains/ensjs`:
 
 - **Set records** — Batch update text records and coin records (ETH only for now) for any ENS name
-- **Create subname** — Register a new subdomain under a parent name, supporting both the Name Wrapper and legacy registry
+- **Create subname** — Register a new subdomain under a parent name (Name Wrapper or registry)
 
 ## How it works
 

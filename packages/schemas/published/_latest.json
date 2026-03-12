@@ -1,13 +1,38 @@
 {
-  "agent": { "version": "1.0.0" },
-  "application": { "version": "1.0.0" },
-  "contract": { "version": "1.1.1" },
-  "delegate": { "version": "1.0.1" },
-  "grant": { "version": "1.0.0" },
-  "group": { "version": "0.1.4" },
-  "org": { "version": "0.1.8" },
-  "person": { "version": "1.0.0" },
-  "treasury": { "version": "1.0.0" },
-  "wallet": { "version": "1.0.0" },
-  "globals": { "version": "1.0.0" }
+  "agent": {
+    "version": "1.0.0"
+  },
+  "application": {
+    "version": "1.0.0"
+  },
+  "contract": {
+    "version": "1.1.1"
+  },
+  "delegate": {
+    "version": "1.0.1"
+  },
+  "grant": {
+    "version": "1.0.0"
+  },
+  "group": {
+    "version": "0.1.4"
+  },
+  "org": {
+    "version": "1.0.0"
+  },
+  "person": {
+    "version": "1.0.0"
+  },
+  "treasury": {
+    "version": "1.0.0"
+  },
+  "wallet": {
+    "version": "1.0.0"
+  },
+  "globals": {
+    "version": "1.0.0"
+  },
+  "company": {
+    "version": "1.0.0"
+  }
 }

@@ -1,10 +1,14 @@
 {
   "schemaId": "org",
-  "latest": "0.1.8",
+  "latest": "1.0.0",
   "published": [
     {
       "version": "0.1.8",
       "schemaPath": "packages/schemas/published/org/versions/0.1.8/schema.json"
+    },
+    {
+      "version": "1.0.0",
+      "schemaPath": "packages/schemas/published/org/versions/1.0.0/schema.json"
     }
   ]
 }
