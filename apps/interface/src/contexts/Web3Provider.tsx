@@ -52,7 +52,8 @@ const Web3ContextProvider = ({ children }: { children: React.ReactNode }) => {
         const walletClient = createWalletClient({
           account: wallets[0].address as `0x${string}`,
           chain,
-          transport: custom(provider),
+          // Avoid "Wallet timeout" when user takes time to approve transactions.
+          transport: custom(provider, { timeout: 120_000 }),
         })
         setWalletClient(walletClient)
       }

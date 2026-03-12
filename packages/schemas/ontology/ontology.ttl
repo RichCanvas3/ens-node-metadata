@@ -32,7 +32,7 @@ atl:defaultSchema a owl:ObjectProperty ;
 atl:OrganizationNode a owl:Class ;
   rdfs:subClassOf prov:Organization ;
   atl:defaultSchema <https://schemas.agentictrust.io/org-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "org-node.json" ;
   atl:schemaId "org" ;
   rdfs:label "Org" ;
@@ -50,7 +50,7 @@ atl:OperationalUnit a owl:Class ;
 atl:AIAgentNode a owl:Class ;
   rdfs:subClassOf prov:SoftwareAgent ;
   atl:defaultSchema <https://schemas.agentictrust.io/agent-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "agent-node.json" ;
   atl:schemaId "agent" ;
   rdfs:label "AIAgent" ;
@@ -60,7 +60,7 @@ atl:ApplicationNode a owl:Class ;
   rdfs:subClassOf prov:Entity ;
   rdfs:seeAlso <https://schema.org/SoftwareApplication> ;
   atl:defaultSchema <https://schemas.agentictrust.io/application-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "application-node.json" ;
   atl:schemaId "application" ;
   rdfs:label "Application" ;
@@ -69,7 +69,7 @@ atl:ApplicationNode a owl:Class ;
 atl:ContractNode a owl:Class ;
   rdfs:subClassOf prov:Entity ;
   atl:defaultSchema <https://schemas.agentictrust.io/contract-node.json> ;
-  atl:schemaVersion "1.1.1" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "contract-node.json" ;
   atl:schemaId "contract" ;
   rdfs:label "Contract" ;
@@ -78,7 +78,7 @@ atl:ContractNode a owl:Class ;
 atl:DelegateNode a owl:Class ;
   rdfs:subClassOf prov:Role ;
   atl:defaultSchema <https://schemas.agentictrust.io/delegate-node.json> ;
-  atl:schemaVersion "1.0.1" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "delegate-node.json" ;
   atl:schemaId "delegate" ;
   rdfs:label "Delegate" ;
@@ -87,7 +87,7 @@ atl:DelegateNode a owl:Class ;
 atl:GrantNode a owl:Class ;
   rdfs:subClassOf prov:Entity ;
   atl:defaultSchema <https://schemas.agentictrust.io/grant-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "grant-node.json" ;
   atl:schemaId "grant" ;
   rdfs:label "Grant" ;
@@ -96,7 +96,7 @@ atl:GrantNode a owl:Class ;
 atl:GroupNode a owl:Class ;
   rdfs:subClassOf atl:OrganizationNode ;
   atl:defaultSchema <https://schemas.agentictrust.io/group-node.json> ;
-  atl:schemaVersion "0.1.4" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "group-node.json" ;
   atl:schemaId "group" ;
   rdfs:label "Group" ;
@@ -105,7 +105,7 @@ atl:GroupNode a owl:Class ;
 atl:CompanyNode a owl:Class ;
   rdfs:subClassOf atl:OrganizationNode ;
   atl:defaultSchema <https://schemas.agentictrust.io/company-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "company-node.json" ;
   atl:schemaId "company" ;
   rdfs:label "Company" ;
@@ -114,7 +114,7 @@ atl:CompanyNode a owl:Class ;
 atl:PersonNode a owl:Class ;
   rdfs:subClassOf prov:Person ;
   atl:defaultSchema <https://schemas.agentictrust.io/person-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "person-node.json" ;
   atl:schemaId "person" ;
   rdfs:label "Person" ;
@@ -123,7 +123,7 @@ atl:PersonNode a owl:Class ;
 atl:TreasuryNode a owl:Class ;
   rdfs:subClassOf prov:Entity ;
   atl:defaultSchema <https://schemas.agentictrust.io/treasury-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "treasury-node.json" ;
   atl:schemaId "treasury" ;
   rdfs:label "Treasury" ;
@@ -132,15 +132,13 @@ atl:TreasuryNode a owl:Class ;
 atl:WalletNode a owl:Class ;
   rdfs:subClassOf prov:Entity ;
   atl:defaultSchema <https://schemas.agentictrust.io/wallet-node.json> ;
-  atl:schemaVersion "1.0.0" ;
+  atl:schemaVersion "2.0.1" ;
   atl:schemaPath "wallet-node.json" ;
   atl:schemaId "wallet" ;
   rdfs:label "Wallet" ;
   rdfs:comment "This node's main purpose is to send, receive, and/or store funds." .
 
 # --- Ontology layer: RDF properties (domain/range). JSON keys are projected via atl:jsonKey in shapes. ---
-atl:schema a owl:DatatypeProperty ; rdfs:domain atl:EnsNode ; rdfs:range xsd:anyURI ; rdfs:label "schema" .
-atl:class a owl:DatatypeProperty ; rdfs:domain atl:EnsNode ; rdfs:range xsd:string ; rdfs:label "class (JSON discriminator; semantic type is rdf:type)" .
 atl:agentUri a owl:DatatypeProperty ; rdfs:domain atl:EnsNode ; rdfs:range xsd:anyURI ; rdfs:label "agent URI" .
 atl:type a owl:DatatypeProperty ; rdfs:domain atl:EnsNode ; rdfs:range xsd:string ; rdfs:label "type" .
 atl:name a owl:DatatypeProperty ; rdfs:domain atl:EnsNode ; rdfs:range xsd:string ; rdfs:label "name" .
@@ -183,21 +181,15 @@ atl:AgentNodeShape a sh:NodeShape ;
   atl:schemaTitle "Agent" ;
   atl:schemaDescription "AI agent identity metadata aligned with ERC-8004 registration format." ;
   atl:schemaSource "https://eips.ethereum.org/EIPS/eip-8004" ;
-  atl:recommended "agent-uri" ; atl:recommended "managed-by" ;
+  atl:recommended "display-name" ; atl:recommended "agent-uri" ; atl:recommended "managed-by" ;
   sh:property [
-    sh:path atl:schema ; atl:jsonKey "schema" ; sh:datatype xsd:anyURI ; atl:format "uri" ; sh:maxCount 1 ;
-    sh:description "Schema URI for this node (e.g. https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json); prefer sem:schema when using ontology"
-  ], [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Agent" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1
-  ], [
     sh:path atl:agentUri ; atl:jsonKey "agent-uri" ; sh:datatype xsd:anyURI ; atl:format "uri" ; sh:maxCount 1 ;
     sh:description "URI to the ERC-8004 registration file"
   ], [
     sh:path atl:type ; atl:jsonKey "type" ; sh:datatype xsd:string ; sh:maxCount 1 ;
     sh:description "Registration file type discriminator"
   ], [
-    sh:path atl:name ; atl:jsonKey "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Agent display name"
+    sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Display name for the agent (distinct from ENS path)"
   ], [
     sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ;
     sh:description "Natural-language description of the agent"
@@ -231,12 +223,8 @@ atl:AgentNodeShape a sh:NodeShape ;
 atl:ApplicationNodeShape a sh:NodeShape ;
   sh:targetClass atl:ApplicationNode ;
   atl:schemaDescription "An application, service, or dApp within the organization." ;
-  atl:recommended "name" ; atl:recommended "description" ; atl:recommended "url" ; atl:recommended "status" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Application" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ;
-    sh:in ("Application" "Service" "Website")
-  ], [ sh:path atl:name ; atl:jsonKey "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "The name of the application" ],
+  atl:recommended "display-name" ; atl:recommended "description" ; atl:recommended "url" ; atl:recommended "status" ;
+  sh:property [ sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Display name for the application (distinct from ENS path)" ],
   [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Description of the application's purpose and functionality" ],
   [ sh:path atl:url ; atl:jsonKey "url" ; sh:datatype xsd:anyURI ; atl:format "uri" ; sh:maxCount 1 ; sh:description "URL where the application is hosted or accessed" ],
   [ sh:path atl:repository ; atl:jsonKey "repository" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Source code repository URL" ],
@@ -247,10 +235,7 @@ atl:ContractNodeShape a sh:NodeShape ;
   sh:targetClass atl:ContractNode ;
   atl:schemaDescription "Smart contract metadata profile following Enscribe smart contract metadata format." ;
   atl:recommended "alias" ; atl:recommended "description" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Contract" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1
-  ], [ sh:path atl:alias ; atl:jsonKey "alias" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Human-readable contract alias (ENSIP-18 alias)" ],
+  sh:property [ sh:path atl:alias ; atl:jsonKey "alias" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Human-readable contract alias (ENSIP-18 alias)" ],
   [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Short description of the contract purpose (ENSIP-18 description)" ],
   [ sh:path atl:avatar ; atl:jsonKey "avatar" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Avatar URI for the contract profile (ENSIP-12 avatar)" ],
   [ sh:path atl:category ; atl:jsonKey "category" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Contract category (e.g., defi, gaming, dao, utility, proxy, factory)" ],
@@ -263,10 +248,7 @@ atl:DelegateNodeShape a sh:NodeShape ;
   sh:targetClass atl:DelegateNode ;
   atl:schemaDescription "A delegate." ;
   atl:recommended "address" ; atl:recommended "display-name" ; atl:recommended "statement" ; atl:recommended "conflict-of-interest" ; atl:recommended "forum-handle" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Delegate" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1
-  ], [ sh:path atl:address ; atl:jsonKey "address" ; sh:datatype xsd:string ; atl:format "address" ; sh:maxCount 1 ; sh:description "The address of the delegate" ],
+  sh:property [ sh:path atl:address ; atl:jsonKey "address" ; sh:datatype xsd:string ; atl:format "address" ; sh:maxCount 1 ; sh:description "The address of the delegate" ],
   [ sh:path atl:legalName ; atl:jsonKey "legal-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "The full legal or preferred name of the delegate (e.g. \"John Doe\")" ],
   [ sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A canonical display name for the delegate" ],
   [ sh:path atl:statement ; atl:jsonKey "statement" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Generic delegate statement" ],
@@ -279,11 +261,8 @@ atl:DelegateNodeShape a sh:NodeShape ;
 atl:GrantNodeShape a sh:NodeShape ;
   sh:targetClass atl:GrantNode ;
   atl:schemaDescription "A grant issued by an organization." ;
-  atl:recommended "name" ; atl:recommended "description" ; atl:recommended "url" ; atl:recommended "status" ; atl:recommended "budget" ; atl:recommended "token" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Grant" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ("Grant" "GrantProgram")
-  ], [ sh:path atl:name ; atl:jsonKey "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "The name of the grant program" ],
+  atl:recommended "display-name" ; atl:recommended "description" ; atl:recommended "url" ; atl:recommended "status" ; atl:recommended "budget" ; atl:recommended "token" ;
+  sh:property [ sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Display name for the grant program (distinct from ENS path)" ],
   [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Description of the grant purpose and scope" ],
   [ sh:path atl:url ; atl:jsonKey "url" ; sh:datatype xsd:anyURI ; atl:format "uri" ; sh:maxCount 1 ; sh:description "URL of the grant program" ],
   [ sh:path atl:status ; atl:jsonKey "status" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Grant status" ; sh:in ("Active" "Incomplete" "Pending" "Completed" "Cancelled") ],
@@ -293,12 +272,8 @@ atl:GrantNodeShape a sh:NodeShape ;
 atl:GroupNodeShape a sh:NodeShape ;
   sh:targetClass atl:GroupNode ;
   atl:schemaDescription "This node describes a group of individuals or entities with a shared purpose or responsibility." ;
-  atl:recommended "name" ; atl:recommended "lead" ; atl:recommended "avatar" ; atl:recommended "url" ; atl:recommended "description" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Group" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ;
-    sh:in ("Group" "Committee" "Council" "Workgroup" "Team")
-  ], [ sh:path atl:name ; atl:jsonKey "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "The name of the group" ],
+  atl:recommended "display-name" ; atl:recommended "lead" ; atl:recommended "avatar" ; atl:recommended "url" ; atl:recommended "description" ;
+  sh:property [ sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Display name for the group (distinct from ENS path)" ],
   [ sh:path atl:avatar ; atl:jsonKey "avatar" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A URL to an image used as an avatar or logo" ],
   [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A description of the name" ],
   [ sh:path atl:url ; atl:jsonKey "url" ; sh:datatype xsd:anyURI ; atl:format "uri" ; sh:maxCount 1 ; sh:description "URL of the group" ],
@@ -310,11 +285,8 @@ atl:OrganizationNodeShape a sh:NodeShape ;
   sh:targetClass atl:OrganizationNode ;
   atl:schemaTitle "Organization" ;
   atl:schemaDescription "A legal or organizational entity." ;
-  atl:recommended "name" ; atl:recommended "avatar" ; atl:recommended "description" ; atl:recommended "url" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Organization" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ("Organization" "Foundation" "OPCo")
-  ], [ sh:path atl:name ; atl:jsonKey "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "The name of this business unit" ],
+  atl:recommended "display-name" ; atl:recommended "avatar" ; atl:recommended "description" ; atl:recommended "url" ;
+  sh:property [ sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Display name for this organization (distinct from ENS path)" ],
   [ sh:path atl:avatar ; atl:jsonKey "avatar" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A URL to an image used as an avatar or logo" ],
   [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A description of the name" ],
   [ sh:path atl:url ; atl:jsonKey "url" ; sh:datatype xsd:anyURI ; atl:format "uri" ; sh:maxCount 1 ; sh:description "URL of the organization" ] .
@@ -323,11 +295,8 @@ atl:CompanyNodeShape a sh:NodeShape ;
   sh:targetClass atl:CompanyNode ;
   atl:schemaTitle "Company" ;
   atl:schemaDescription "A company; is-a Organization." ;
-  atl:recommended "name" ; atl:recommended "avatar" ; atl:recommended "description" ; atl:recommended "url" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Company" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ("Company")
-  ], [ sh:path atl:name ; atl:jsonKey "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "The name of the company" ],
+  atl:recommended "display-name" ; atl:recommended "avatar" ; atl:recommended "description" ; atl:recommended "url" ;
+  sh:property [ sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Display name for the company (distinct from ENS path)" ],
   [ sh:path atl:avatar ; atl:jsonKey "avatar" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A URL to an image used as an avatar or logo" ],
   [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A description of the company" ],
   [ sh:path atl:url ; atl:jsonKey "url" ; sh:datatype xsd:anyURI ; atl:format "uri" ; sh:maxCount 1 ; sh:description "URL of the company" ] .
@@ -335,28 +304,18 @@ atl:CompanyNodeShape a sh:NodeShape ;
 atl:PersonNodeShape a sh:NodeShape ;
   sh:targetClass atl:PersonNode ;
   atl:schemaDescription "A person." ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Person" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ;
-    sh:in ("Person" "Human" "Signer" "Officer" "Employee" "Secretary")
-  ], [ sh:path atl:fullName ; atl:jsonKey "full-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Full legal or preferred name" ],
+  sh:property [ sh:path atl:fullName ; atl:jsonKey "full-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Full legal or preferred name" ],
   [ sh:path atl:title ; atl:jsonKey "title" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Title within the organization, if any" ] .
 
 atl:TreasuryNodeShape a sh:NodeShape ;
   sh:targetClass atl:TreasuryNode ;
   atl:schemaDescription "Funds and assets managed by a collective of individuals or entities." ;
-  atl:recommended "name" ; atl:recommended "description" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Treasury" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ("Treasury" "Vault")
-  ], [ sh:path atl:name ; atl:jsonKey "name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "The name of the treasury" ],
+  atl:recommended "display-name" ; atl:recommended "description" ;
+  sh:property [ sh:path atl:displayName ; atl:jsonKey "display-name" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Display name for the treasury (distinct from ENS path)" ],
   [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "A description of the name" ] .
 
 atl:WalletNodeShape a sh:NodeShape ;
   sh:targetClass atl:WalletNode ;
   atl:schemaDescription "A wallet for holding or managing assets." ;
   atl:recommended "description" ;
-  sh:property [
-    sh:path atl:class ; atl:jsonKey "class" ; sh:datatype xsd:string ; atl:default "Wallet" ;
-    sh:description "High-level identifier of this node type" ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ("Wallet" "Account")
-  ], [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Indicates the purpose of the wallet" ] .
+  sh:property [ sh:path atl:description ; atl:jsonKey "description" ; sh:datatype xsd:string ; sh:maxCount 1 ; sh:description "Indicates the purpose of the wallet" ] .

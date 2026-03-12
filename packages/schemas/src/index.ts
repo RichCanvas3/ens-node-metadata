@@ -40,6 +40,7 @@ export {
   getSchemaUriForNode,
   getSchemaUriFromNode,
   getSchemaVersionForDisplayClass,
+  getSchemaVersionForNode,
   getTypeUri,
   getTypeUriForDisplayClass,
   getVersionedSchemaUriForDisplayClass,

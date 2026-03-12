@@ -1,0 +1,49 @@
+{
+  "$id": "https://schemas.agentictrust.io/application-node/v2.0.0/schema.json",
+  "source": "https://schemas.agentictrust.io/",
+  "title": "Application",
+  "version": "2.0.0",
+  "description": "An application, service, or dApp within the organization.",
+  "type": "object",
+  "properties": {
+    "display-name": {
+      "type": "string",
+      "description": "Display name for the application (distinct from ENS path)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the application's purpose and functionality"
+    },
+    "url": {
+      "type": "string",
+      "description": "URL where the application is hosted or accessed",
+      "format": "uri"
+    },
+    "repository": {
+      "type": "string",
+      "description": "Source code repository URL"
+    },
+    "version": {
+      "type": "string",
+      "description": "Current version of the application"
+    },
+    "status": {
+      "type": "string",
+      "description": "Application status",
+      "enum": [
+        "Active",
+        "Development",
+        "Deprecated"
+      ]
+    }
+  },
+  "required": [
+    "class"
+  ],
+  "recommended": [
+    "display-name",
+    "description",
+    "url",
+    "status"
+  ]
+}

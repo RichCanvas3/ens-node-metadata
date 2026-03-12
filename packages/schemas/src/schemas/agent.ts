@@ -2,18 +2,16 @@
 import type { Schema } from "../types";
 
 export const AGENT_SCHEMA: Schema = {
-  $id: 'https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json',
+  $id: 'https://schemas.agentictrust.io/agent-node/v2.0.1/schema.json',
   source: 'https://eips.ethereum.org/EIPS/eip-8004',
   title: 'Agent',
-  version: '1.0.0',
+  version: '2.0.1',
   description: 'AI agent identity metadata aligned with ERC-8004 registration format.',
   type: 'object' as const,
   properties: {
-    schema: { type: 'string', description: 'Schema URI for this node (e.g. https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json); prefer sem:schema when using ontology', format: 'uri' },
-    class: { type: 'string', description: 'High-level identifier of this node type', default: 'Agent' },
     'agent-uri': { type: 'string', description: 'URI to the ERC-8004 registration file', format: 'uri' },
     type: { type: 'string', description: 'Registration file type discriminator' },
-    name: { type: 'string', description: 'Agent display name' },
+    'display-name': { type: 'string', description: 'Display name for the agent (distinct from ENS path)' },
     description: { type: 'string', description: 'Natural-language description of the agent' },
     services: { type: 'string', description: 'Advertised service endpoints' },
     'x402-support': { type: 'boolean', description: 'Whether x402 payment flow is supported' },
@@ -26,6 +24,5 @@ export const AGENT_SCHEMA: Schema = {
   patternProperties: {
     '^service(\[[^\]]+\])?$': { type: 'string', description: 'service[name] => endpoint, per ERC-8004 eg. service[MCP] => <ENDPOINT_URL>' },
   },
-  required: ['class'],
-  recommended: ['agent-uri', 'managed-by']
+  recommended: ['display-name', 'agent-uri', 'managed-by']
 };

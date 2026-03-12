@@ -101,7 +101,16 @@ export const useTreeData = () => {
       let mergedNode = { ...node }
       if (mutation && !mutation.createNode) {
         if (mutation.changes) {
-          mergedNode = { ...mergedNode, ...mutation.changes }
+          // Apply to top-level (existing behavior) and also mirror into texts for schema resolution / display.
+          const newTexts = { ...(mergedNode.texts ?? {}) } as Record<string, any>
+          for (const [k, v] of Object.entries(mutation.changes)) {
+            if (v === undefined) continue
+            // Mirror only text-record-like keys (skip obvious non-text keys)
+            if (k !== 'address' && k !== 'texts' && k !== 'children' && k !== 'inspectionData') {
+              newTexts[k] = v as any
+            }
+          }
+          mergedNode = { ...mergedNode, ...mutation.changes, texts: newTexts }
         }
         if (mutation.deleted?.length) {
           const newTexts = { ...(mergedNode.texts ?? {}) }
@@ -119,6 +128,15 @@ export const useTreeData = () => {
 
       const nodesToAdd: TreeNode[] = []
       for (const [nodeName, creation] of creationsForNode) {
+        const creationTexts: Record<string, any> = {}
+        if (creation.changes) {
+          for (const [k, v] of Object.entries(creation.changes)) {
+            if (v === undefined) continue
+            if (k !== 'address' && k !== 'texts' && k !== 'children' && k !== 'inspectionData') {
+              creationTexts[k] = v
+            }
+          }
+        }
         const createdNode: TreeNode = {
           name: nodeName,
           id: nodeName,
@@ -129,6 +147,7 @@ export const useTreeData = () => {
           subdomainCount: 0,
           isPendingCreation: true,
           ...creation.changes,
+          texts: creationTexts,
         }
         nodesToAdd.push(buildCreatedSubtree(createdNode))
       }

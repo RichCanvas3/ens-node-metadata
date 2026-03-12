@@ -1,12 +1,11 @@
 import { create } from 'zustand'
-import { setRecords, createSubname } from '@ensdomains/ensjs/wallet'
+import { setRecords, createSubname, setResolver } from '@ensdomains/ensjs/wallet'
 import type { ClientWithAccount } from '@ensdomains/ensjs/contracts'
 import type { WalletClient } from 'viem'
 import {
-  getDisplayClass,
-  getSchemaVersionForDisplayClass,
-  getTypeUriForDisplayClass,
-  getVersionedSchemaUriForDisplayClass,
+  getSchemaVersionForNode,
+  getTypeUri,
+  getVersionedSchemaUriForNode,
 } from '@ens-node-metadata/schemas'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
@@ -111,22 +110,13 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
         continue
       }
 
-      // Ontology-only: write sem:type, sem:schema, sem:schemaVersion (no legacy class/schema)
+      // Ontology-only: write sem:type, sem:schema, sem:schemaVersion. Never write legacy class/schema.
       const texts: { key: string; value: string }[] = []
       if (edit.changes) {
         for (const [key, value] of Object.entries(edit.changes)) {
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
           if (value === null || value === undefined) continue
-          if (key === 'class') {
-            const displayClass = String(value)
-            const typeUri = getTypeUriForDisplayClass(displayClass)
-            if (typeUri) texts.push({ key: 'sem:type', value: typeUri })
-            const versionedSchema = getVersionedSchemaUriForDisplayClass(displayClass)
-            if (versionedSchema) texts.push({ key: 'sem:schema', value: versionedSchema })
-            const schemaVersion = getSchemaVersionForDisplayClass(displayClass)
-            if (schemaVersion) texts.push({ key: 'sem:schemaVersion', value: schemaVersion })
-            continue
-          }
+          if (key === 'schema' || key === 'class') continue
           texts.push({ key, value: String(value) })
         }
       }
@@ -135,31 +125,35 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       if (edit.deleted) {
         for (const key of edit.deleted) {
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
-          if (key === 'class') {
-            texts.push({ key: 'sem:type', value: '' })
-            texts.push({ key: 'sem:schema', value: '' })
-            texts.push({ key: 'sem:schemaVersion', value: '' })
-            continue
-          }
+          if (key === 'schema' || key === 'class') continue
           texts.push({ key, value: '' })
         }
       }
 
-      // Backfill sem:type, sem:schema, sem:schemaVersion if node has a type but they're missing from this update
-      const effectiveClass =
-        (edit.changes?.class != null ? String(edit.changes.class) : null) ?? getDisplayClass(node ?? undefined)
-      if (effectiveClass) {
-        const hasSemType = texts.some((t) => t.key === 'sem:type')
-        const hasSemSchema = texts.some((t) => t.key === 'sem:schema')
-        const hasSemVersion = texts.some((t) => t.key === 'sem:schemaVersion')
-        if (!hasSemType || !hasSemSchema || !hasSemVersion) {
-          const typeUri = getTypeUriForDisplayClass(effectiveClass)
-          const versionedSchema = getVersionedSchemaUriForDisplayClass(effectiveClass)
-          const schemaVersion = getSchemaVersionForDisplayClass(effectiveClass)
-          if (!hasSemType && typeUri) texts.push({ key: 'sem:type', value: typeUri })
-          if (!hasSemSchema && versionedSchema) texts.push({ key: 'sem:schema', value: versionedSchema })
-          if (!hasSemVersion && schemaVersion) texts.push({ key: 'sem:schemaVersion', value: schemaVersion })
-        }
+      // Ensure canonical ontology keys exist for typed nodes.
+      const hasSemType = texts.some((t) => t.key === 'sem:type')
+      const hasSemSchema = texts.some((t) => t.key === 'sem:schema')
+      const hasSemVersion = texts.some((t) => t.key === 'sem:schemaVersion')
+
+      const effectiveTypeUri =
+        (edit.changes?.['sem:type'] != null ? String(edit.changes['sem:type']) : null) ??
+        getTypeUri(node ?? undefined)
+
+      if (effectiveTypeUri) {
+        if (!hasSemType) texts.push({ key: 'sem:type', value: effectiveTypeUri })
+
+        const mappedSchema = getVersionedSchemaUriForNode({ texts: { 'sem:type': effectiveTypeUri } })
+        const mappedVersion = getSchemaVersionForNode({ texts: { 'sem:type': effectiveTypeUri } })
+        if (!hasSemSchema && mappedSchema) texts.push({ key: 'sem:schema', value: mappedSchema })
+        if (!hasSemVersion && mappedVersion) texts.push({ key: 'sem:schemaVersion', value: mappedVersion })
+      }
+
+      // Clear legacy keys if they exist on-chain (reduce confusion)
+      if (node?.texts && Object.prototype.hasOwnProperty.call(node.texts, 'schema')) {
+        texts.push({ key: 'schema', value: '' })
+      }
+      if (node?.texts && Object.prototype.hasOwnProperty.call(node.texts, 'class')) {
+        texts.push({ key: 'class', value: '' })
       }
 
       // Extract address change as a coin record (batched into the same setRecords call)
@@ -248,11 +242,7 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       }
     }
 
-    // Discard creation mutations that were skipped (edit mutations are discarded in watchTxn callbacks)
-    const { discardPendingMutation } = useTreeEditStore.getState()
-    for (const [nodeName] of creations) {
-      discardPendingMutation(nodeName)
-    }
+    // Creations are handled via submitCreation (ApplyChangesDialog "Create Subname" button).
 
     // Set final status
     const finalJobs = get().jobs
@@ -266,25 +256,97 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
     }
 
     const { addTxn, watchTxn } = useTxnsStore.getState()
+    const { pendingMutations } = useTreeEditStore.getState()
+    const mutation = pendingMutations.get(nodeName)
+    if (!mutation?.createNode) throw new Error('[mutations] pending creation not found')
 
     // ensjs requires full name (e.g. "treasury.richcanvas.eth"); single-label "treasury" is treated as "tld" and throws
     const fullName = nodeName.includes('.')
       ? nodeName
       : `${nodeName}.${parentNode.name}`
 
-    const hash = await createSubname(asEnsWalletClient(walletClient), {
+    const resolverAddress = parentNode.resolverAddress
+    if (!resolverAddress) throw new Error('[mutations] parent resolver address missing')
+
+    // Build canonical text records from the queued creation changes.
+    const texts: { key: string; value: string }[] = []
+    const coins: { coin: string; value: string }[] = []
+
+    const changes = mutation.changes ?? {}
+    for (const [key, value] of Object.entries(changes)) {
+      if (NON_TEXT_RECORD_KEYS.has(key)) continue
+      if (value === null || value === undefined) continue
+      if (key === 'schema' || key === 'class') continue
+      if (key === 'address') {
+        coins.push({ coin: 'ETH', value: String(value) })
+        continue
+      }
+      texts.push({ key, value: String(value) })
+    }
+
+    // Ensure sem:type exists and derive sem:schema + sem:schemaVersion when missing.
+    const semType = (changes as any)['sem:type'] ?? (mutation.texts as any)?.['sem:type']
+    if (!semType) throw new Error('[mutations] missing sem:type for creation')
+
+    const hasSemType = texts.some((t) => t.key === 'sem:type')
+    const hasSemSchema = texts.some((t) => t.key === 'sem:schema')
+    const hasSemVersion = texts.some((t) => t.key === 'sem:schemaVersion')
+
+    if (!hasSemType) texts.push({ key: 'sem:type', value: String(semType) })
+    const mappedSchema = getVersionedSchemaUriForNode({ texts: { 'sem:type': String(semType) } })
+    const mappedVersion = getSchemaVersionForNode({ texts: { 'sem:type': String(semType) } })
+    if (!hasSemSchema && mappedSchema) texts.push({ key: 'sem:schema', value: mappedSchema })
+    if (!hasSemVersion && mappedVersion) texts.push({ key: 'sem:schemaVersion', value: mappedVersion })
+
+    // 1) Create the subname (may already exist from a previous attempt).
+    try {
+      const hash = await createSubname(asEnsWalletClient(walletClient), {
+        name: fullName,
+        owner: walletClient.account.address as `0x${string}`,
+        contract: parentNode.isWrapped ? 'nameWrapper' : 'registry',
+        resolverAddress: resolverAddress as `0x${string}`,
+        account: walletClient.account,
+      })
+      addTxn({ hash, type: 'createSubname', label: nodeName })
+      void watchTxn(hash, publicClient)
+      await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 })
+    } catch (err) {
+      // If the name already exists, continue and attempt to set records.
+      console.warn('[mutations] createSubname failed (continuing to setRecords):', err)
+    }
+
+    // 2) Ensure resolver is set (needed for ENS app to show records), then set records.
+    try {
+      const currentResolver = await publicClient.getEnsResolver({ name: fullName })
+      const desired = (resolverAddress as string).toLowerCase()
+      const current = currentResolver?.address?.toLowerCase?.()
+      if (!current || current !== desired) {
+        const rHash = await setResolver(asEnsWalletClient(walletClient), {
+          name: fullName,
+          contract: parentNode.isWrapped ? 'nameWrapper' : 'registry',
+          resolverAddress: resolverAddress as `0x${string}`,
+          account: walletClient.account,
+        })
+        addTxn({ hash: rHash, type: 'setRecords', label: `${nodeName}:resolver` })
+        void watchTxn(rHash, publicClient)
+        await publicClient.waitForTransactionReceipt({ hash: rHash, confirmations: 1 })
+      }
+    } catch (err) {
+      console.warn('[mutations] setResolver preflight failed (continuing):', err)
+    }
+
+    const setHash = await setRecords(asEnsWalletClient(walletClient), {
       name: fullName,
-      owner: walletClient.account.address as `0x${string}`,
-      contract: parentNode.isWrapped ? 'nameWrapper' : 'registry',
+      texts,
+      coins,
+      resolverAddress: resolverAddress as `0x${string}`,
       account: walletClient.account,
     })
+    addTxn({ hash: setHash, type: 'setRecords', label: nodeName })
 
-    addTxn({ hash, type: 'createSubname', label: nodeName })
-
-    // Watch in background — discard the pending creation and refresh tree after confirmations
-    watchTxn(hash, publicClient).then(() => {
-      const { txns } = useTxnsStore.getState()
-      const txn = txns.find((t) => t.hash === hash)
+    // When records tx confirms, drop pending creation and refresh tree.
+    void watchTxn(setHash, publicClient).then(() => {
+      const txn = useTxnsStore.getState().txns.find((t) => t.hash === setHash)
       if (txn?.status === 'confirmed') {
         useTreeEditStore.getState().discardPendingMutation(nodeName)
         const { refreshTree, treeRootName } = useTreeLoaderStore.getState()
@@ -292,7 +354,7 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       }
     })
 
-    return hash
+    return setHash
   },
 
   reset: () => set({ jobs: [], status: 'idle' }),

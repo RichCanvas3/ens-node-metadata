@@ -16,6 +16,7 @@ export async function fetchSchemas(): Promise<Schema[]> {
       versionedSchemaUri: string
       displayClass: string
       schemaVersion: string
+      isLatest?: boolean
       schema: Record<string, unknown>
     }) => ({
       ...entry.schema,
@@ -27,7 +28,7 @@ export async function fetchSchemas(): Promise<Schema[]> {
       title: entry.schema.title ?? entry.displayClass,
       class: entry.displayClass,
       version: entry.schemaVersion,
-      isLatest: true,
+      isLatest: entry.isLatest ?? false,
     })
   )
 

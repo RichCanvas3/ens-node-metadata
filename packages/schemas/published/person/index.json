@@ -1,10 +1,18 @@
 {
   "schemaId": "person",
-  "latest": "1.0.0",
+  "latest": "2.0.1",
   "published": [
     {
       "version": "1.0.0",
       "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json"
+    },
+    {
+      "version": "2.0.0",
+      "schemaPath": "packages/schemas/published/person/versions/2.0.0/schema.json"
+    },
+    {
+      "version": "2.0.1",
+      "schemaPath": "packages/schemas/published/person/versions/2.0.1/schema.json"
     }
   ]
 }

@@ -8,6 +8,25 @@ interface NodeIconProps {
   isSuggested?: boolean
 }
 
+function sanitizeAvatarUrl(raw?: string | null): string | null {
+  if (!raw) return null
+  const url = raw.trim()
+  if (!url) return null
+
+  // Allow: absolute URLs, protocol-relative, data URLs.
+  if (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('//') ||
+    url.startsWith('data:')
+  ) {
+    return url
+  }
+
+  // Disallow relative / scheme-less values (these cause localhost/<...> 404s).
+  return null
+}
+
 export function NodeIcon({
   avatarUrl,
   fallback,
@@ -17,14 +36,16 @@ export function NodeIcon({
 }: NodeIconProps) {
   const roundedClass = size >= 48 ? 'rounded-lg' : 'rounded-md'
 
-  if (avatarUrl && !isSuggested) {
+  const safeAvatarUrl = sanitizeAvatarUrl(avatarUrl)
+
+  if (safeAvatarUrl && !isSuggested) {
     return (
       <div
         className={`flex items-center justify-center ${roundedClass} flex-shrink-0 overflow-hidden`}
         style={{ width: size, height: size }}
       >
         <img
-          src={avatarUrl}
+          src={safeAvatarUrl}
           alt="Node avatar"
           style={{
             width: size,

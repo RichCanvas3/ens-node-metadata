@@ -1,5 +1,6 @@
 'use client'
 
+import { createPortal } from 'react-dom'
 import { Drawer } from 'vaul'
 import { X, ExternalLink, Trash2 } from 'lucide-react'
 import { AddressField } from './AddressField'
@@ -9,7 +10,11 @@ import { useTreeData } from '@/hooks/useTreeData'
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { useSchemaStore } from '@/stores/schemas'
 import { useNodeEditorStore } from '@/stores/node-editor'
-import { getDisplayClass, getVersionedSchemaUriForNode } from '@ens-node-metadata/schemas'
+import {
+  getDisplayClass,
+  getSchemaVersionForNode,
+  getVersionedSchemaUriForNode,
+} from '@ens-node-metadata/schemas'
 import { type TreeNode } from '@/lib/tree/types'
 import { fetchTexts } from '@/lib/tree/fetchTexts'
 
@@ -17,12 +22,11 @@ const ONTOLOGY_TEXT_KEYS = [
   'sem:type',
   'sem:schema',
   'sem:schemaVersion',
-  'schema',
-  'class',
   'description',
   'url',
   'name',
   'label',
+  'display-name',
 ]
 
 export function EditNodeDrawer() {
@@ -91,16 +95,35 @@ export function EditNodeDrawer() {
   const existingEdit = selectedNode ? getPendingEdit(selectedNode) : undefined
   const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
-  // Merge on-demand fetched texts so schema resolution and form have sem:type / sem:schema
+  // Merge on-demand fetched texts and any pending sem:* changes into texts so schema resolution works.
   const displayNode = useMemo(() => {
     if (!nodeWithEdits || !selectedNode) return nodeWithEdits
+    let texts: Record<string, string | null> = { ...(nodeWithEdits.texts ?? {}) }
     const extra = hydratedTexts[selectedNode]
-    if (!extra) return nodeWithEdits
-    return {
-      ...nodeWithEdits,
-      texts: { ...(nodeWithEdits.texts ?? {}), ...extra } as Record<string, string | null>,
+    if (extra) {
+      texts = { ...texts, ...extra }
     }
-  }, [nodeWithEdits, selectedNode, hydratedTexts])
+    const changes = existingEdit?.changes
+    if (changes) {
+      if (changes['sem:type'] != null) texts['sem:type'] = String(changes['sem:type'])
+      if (changes['sem:schema'] != null) texts['sem:schema'] = String(changes['sem:schema'])
+      if (changes['sem:schemaVersion'] != null) texts['sem:schemaVersion'] = String(changes['sem:schemaVersion'])
+    } else {
+      // Pending creation nodes store text records at the top-level (via queueCreation); mirror them into texts.
+      const t = (nodeWithEdits as any)['sem:type']
+      const s = (nodeWithEdits as any)['sem:schema']
+      const v = (nodeWithEdits as any)['sem:schemaVersion']
+      if (t != null) texts['sem:type'] = String(t)
+      if (s != null) texts['sem:schema'] = String(s)
+      if (v != null) texts['sem:schemaVersion'] = String(v)
+      // If we have sem:type but no sem:schemaVersion, fill from ontology mapping (canonical)
+      if (texts['sem:type'] && !texts['sem:schemaVersion']) {
+        const mapped = getSchemaVersionForNode({ texts })
+        if (mapped) texts['sem:schemaVersion'] = mapped
+      }
+    }
+    return { ...nodeWithEdits, texts }
+  }, [nodeWithEdits, selectedNode, hydratedTexts, existingEdit?.changes])
 
   // When drawer opens and node has no schema resolution, fetch ontology texts by ENS name
   useEffect(() => {
@@ -149,7 +172,7 @@ export function EditNodeDrawer() {
     const out: { value: string; label: string }[] = []
     const walk = (node: TreeNode) => {
       if (getDisplayClass(node) === 'Company') {
-        const label = (node.texts?.label ?? node.texts?.name ?? node.name) || node.name
+        const label = (node.texts?.label ?? node.texts?.['display-name'] ?? node.texts?.name ?? node.name) || node.name
         out.push({ value: node.name, label: String(label) })
       }
       node.children?.forEach(walk)
@@ -277,10 +300,18 @@ export function EditNodeDrawer() {
                 <X size={20} />
               </button>
 
-              <Drawer.Title className="font-semibold text-2xl text-gray-900 dark:text-white mb-3">
-                {nodeWithEdits?.name}
+              <Drawer.Title className="font-semibold text-2xl text-gray-900 dark:text-white mb-1">
+                {nodeWithEdits?.texts?.['display-name'] ??
+                  nodeWithEdits?.texts?.label ??
+                  nodeWithEdits?.texts?.name ??
+                  nodeWithEdits?.name}
               </Drawer.Title>
-
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                ENS name is fixed and cannot be edited.
+                {nodeWithEdits?.name ? (
+                  <span className="block font-mono break-all mt-1">{nodeWithEdits.name}</span>
+                ) : null}
+              </p>
               <Drawer.Description className="sr-only">{nodeWithEdits?.name}</Drawer.Description>
             </div>
 
@@ -312,6 +343,8 @@ export function EditNodeDrawer() {
 
                     if (nodeWithEdits.texts && typeof nodeWithEdits.texts === 'object') {
                       Object.keys(nodeWithEdits.texts).forEach((key) => {
+                        // Hide legacy keys; only canonical sem:* keys + user-defined records should show here.
+                        if (key === 'schema' || key === 'class') return
                         if (!schemaKeys.has(key)) {
                           extraKeys.push(key)
                         }
@@ -502,35 +535,46 @@ export function EditNodeDrawer() {
         </Drawer.Content>
       </Drawer.Portal>
 
-      {/* Discard Changes Confirmation Dialog */}
-      {showDiscardDialog && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      {/* Discard confirmation: portaled to body so it's above the drawer and receives clicks immediately */}
+      {showDiscardDialog &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <div
-            className="absolute inset-0 bg-black/50"
-            onClick={handleCancelDiscard}
-            aria-hidden="true"
-          />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-              Are you sure you want to discard your changes?
-            </h3>
-            <div className="flex gap-3">
-              <button
-                onClick={handleCancelDiscard}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-              >
-                No, continue editing
-              </button>
-              <button
-                onClick={handleConfirmDiscard}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
-              >
-                Yes, discard
-              </button>
+            className="fixed inset-0 z-[1000] flex items-center justify-center pointer-events-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="discard-dialog-title"
+          >
+            <div
+              className="absolute inset-0 bg-black/50 pointer-events-auto"
+              onClick={handleCancelDiscard}
+              aria-hidden="true"
+            />
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 dark:border-gray-700">
+              <h3 id="discard-dialog-title" className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                Are you sure you want to discard your changes?
+              </h3>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelDiscard}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  No, continue editing
+                </button>
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={handleConfirmDiscard}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Yes, discard
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </Drawer.Root>
   )
 }

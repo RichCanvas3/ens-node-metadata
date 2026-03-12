@@ -154,7 +154,6 @@ function extractClassMappingFromShape(quads: N3.Quad[], shapeSubject: string, ta
     }
     if (minCount === '1') required.push(jsonKey)
   }
-  if (required.length === 0) required.push('class')
 
   const patternProperties: Record<string, { type: string; description: string }> = {}
   const ppQuads = quads.filter((q) => q.subject.value === shapeSubject && q.predicate.value === ATL_PATTERN_PROPERTY)
@@ -217,7 +216,7 @@ function generateSchemaFile(schemaId: string, classMapping: ClassMapping): strin
   const title = classMapping.schemaTitle ?? classMapping.conceptLocalName
   const description = classMapping.schemaDescription ?? classMapping.definition
   const source = classMapping.schemaSource ?? schemaBase ?? GITHUB_URL
-  const required = classMapping.required.length ? classMapping.required : ['class']
+  const required = classMapping.required
   const constNameMap: Record<string, string> = {
     agent: 'AGENT_SCHEMA',
     application: 'APPLICATION_SCHEMA',
@@ -258,9 +257,11 @@ function generateSchemaFile(schemaId: string, classMapping: ClassMapping): strin
     }
     lines.push('  },')
   }
-  lines.push(`  required: [${required.map((r) => quoteStr(r)).join(', ')}]`)
+  if (required.length > 0) {
+    lines.push(`  required: [${required.map((r) => quoteStr(r)).join(', ')}]`)
+  }
   if (classMapping.recommended && classMapping.recommended.length > 0) {
-    lines[lines.length - 1] += ','
+    if (required.length > 0) lines[lines.length - 1] += ','
     lines.push(`  recommended: [${classMapping.recommended.map((r) => quoteStr(r)).join(', ')}]`)
   }
   lines.push('};')

@@ -1,0 +1,20 @@
+{
+  "$id": "https://schemas.agentictrust.io/wallet-node/v2.0.0/schema.json",
+  "source": "https://schemas.agentictrust.io/",
+  "title": "Wallet",
+  "version": "2.0.0",
+  "description": "A wallet for holding or managing assets.",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Indicates the purpose of the wallet"
+    }
+  },
+  "required": [
+    "class"
+  ],
+  "recommended": [
+    "description"
+  ]
+}

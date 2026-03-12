@@ -1,0 +1,34 @@
+{
+  "$id": "https://schemas.agentictrust.io/treasury-node/v1.1.0/schema.json",
+  "source": "https://schemas.agentictrust.io/",
+  "title": "Treasury",
+  "version": "1.1.0",
+  "description": "Funds and assets managed by a collective of individuals or entities.",
+  "type": "object",
+  "properties": {
+    "class": {
+      "type": "string",
+      "description": "High-level identifier of this node type",
+      "default": "Treasury",
+      "enum": [
+        "Treasury",
+        "Vault"
+      ]
+    },
+    "display-name": {
+      "type": "string",
+      "description": "Display name for the treasury (distinct from ENS path)"
+    },
+    "description": {
+      "type": "string",
+      "description": "A description of the name"
+    }
+  },
+  "required": [
+    "class"
+  ],
+  "recommended": [
+    "display-name",
+    "description"
+  ]
+}

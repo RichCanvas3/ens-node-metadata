@@ -1,15 +1,18 @@
 'use client'
 
 import { useRef } from 'react'
-import { Search, ChevronDown, RefreshCw, Info, Lock, Unlock } from 'lucide-react'
+import { Search, ChevronDown, RefreshCw, Info } from 'lucide-react'
 import { useNodeEditorStore } from '@/stores/node-editor'
 import { useSchemaStore } from '@/stores/schemas'
 import { useOutsideClick } from '@/hooks/useOutsideClick'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 import type { Schema } from '@/stores/schemas'
 
-/** Fields managed automatically (set when a schema is selected) — hidden from the manual editor */
-const MANAGED_FIELDS = new Set(['schema'])
+/** Human-readable label for schema property key (e.g. display-name → Display name) */
+function fieldLabel(key: string): string {
+  if (key === 'display-name') return 'Display name'
+  return key.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
+}
 
 interface SchemaEditorProps {
   activeSchema: Schema | null
@@ -37,14 +40,12 @@ export function SchemaEditor({
     schemaSearchQuery,
     isLoadingSchemas,
     isOptionalFieldDropdownOpen,
-    isClassFieldLocked,
     updateField,
     addOptionalField,
     removeOptionalField,
     toggleSchemaDropdown,
     setSchemaSearchQuery,
     toggleOptionalFieldDropdown,
-    toggleClassFieldLock,
   } = useNodeEditorStore()
 
   const { schemas } = useSchemaStore()
@@ -70,7 +71,7 @@ export function SchemaEditor({
     .filter((s) => (allowedSet == null ? true : allowedSet.has(s.class.toLowerCase())))
     .filter((s) => s.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
 
-  const isHiddenField = (key: string) => addressFieldKeys.has(key) || key === 'schema' || key === 'class'
+  const isHiddenField = (key: string) => addressFieldKeys.has(key)
 
   const hasNonAddressFields =
     activeSchema?.properties &&
@@ -171,41 +172,6 @@ export function SchemaEditor({
       {/* Fields */}
       {hasNonAddressFields ? (
         <div className="space-y-4">
-          {/* Class Field - Always shown at top when schema is selected */}
-          {activeSchema && activeSchema.properties?.class && (
-            <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                class
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData.class ?? activeSchema.class ?? ''}
-                  onChange={(e) => !isClassFieldLocked && updateField('class', e.target.value)}
-                  disabled={isClassFieldLocked}
-                  className={`w-full px-3 py-2 pr-10 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                    isClassFieldLocked
-                      ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 cursor-not-allowed'
-                      : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600'
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={toggleClassFieldLock}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                  aria-label={isClassFieldLocked ? 'Unlock class field' : 'Lock class field'}
-                >
-                  {isClassFieldLocked ? (
-                    <Lock size={14} className="text-gray-500 dark:text-gray-400" />
-                  ) : (
-                    <Unlock size={14} className="text-gray-500 dark:text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Loop 1: required + recommended fields */}
           {Object.entries(activeSchema!.properties!)
             .filter(
@@ -231,7 +197,7 @@ export function SchemaEditor({
                       <label
                         className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        {key}
+                        {fieldLabel(key)}
                         {isRequired && <span className="text-red-500 ml-0.5">*</span>}
                         {attribute.description && (
                           <TooltipProvider delayDuration={200}>
@@ -318,7 +284,7 @@ export function SchemaEditor({
                       <label
                         className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        {key}
+                        {fieldLabel(key)}
                         {attribute.description && (
                           <TooltipProvider delayDuration={200}>
                             <Tooltip>
@@ -405,7 +371,7 @@ export function SchemaEditor({
                         onClick={() => addOptionalField(key)}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                       >
-                        <div className="font-medium text-gray-900 dark:text-white">{key}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{fieldLabel(key)}</div>
                         {attribute.description && (
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {attribute.description}

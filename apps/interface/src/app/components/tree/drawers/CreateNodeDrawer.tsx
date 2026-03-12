@@ -1,5 +1,6 @@
 'use client'
 
+import { createPortal } from 'react-dom'
 import { Drawer } from 'vaul'
 import { X, Search, ChevronDown } from 'lucide-react'
 import { AddressField } from './AddressField'
@@ -11,7 +12,7 @@ import { type TreeNode } from '@/lib/tree/types'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSchemaStore } from '@/stores/schemas'
 import { useNodeEditorStore } from '@/stores/node-editor'
-import { getDisplayClass } from '@ens-node-metadata/schemas'
+import { getDisplayClass, getSchemaVersionForNode, getTypeUriForDisplayClass } from '@ens-node-metadata/schemas'
 
 interface Props {
   isOpen: boolean
@@ -37,6 +38,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
   } = useNodeEditorStore()
 
   const [selectedParent, setSelectedParent] = useState<string>('')
+  const [subnameLabel, setSubnameLabel] = useState<string>('')
   const [parentSearch, setParentSearch] = useState('')
   const [isParentDropdownOpen, setIsParentDropdownOpen] = useState(false)
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
@@ -58,6 +60,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     if (!isOpen || !sourceTree) return
 
     setSelectedParent(sourceTree.name)
+    setSubnameLabel(suggestionId)
     setParentSearch('')
     setIsParentDropdownOpen(false)
     resetEditor()
@@ -70,6 +73,23 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
       setCurrentSchema(matched.id, matched, undefined)
     }
   }, [isOpen, sourceTree, suggestionId, schemas, resetEditor, setCurrentSchema])
+
+  // Reject labelhash / hex-only labels — require a human-readable subname label
+  const isLabelHashLike = (label: string) =>
+    /^[0-9a-fA-F]{64}$/.test(label) ||
+    /^\[[0-9a-fA-F]+\]$/.test(label) ||
+    (label.length >= 32 && /^[0-9a-fA-F]+$/.test(label))
+  const subnameLabelTrimmed = subnameLabel.trim()
+  const subnameLabelError =
+    !subnameLabelTrimmed
+      ? 'Enter a subname label'
+      : subnameLabelTrimmed.includes('.')
+        ? 'Label must not contain a dot'
+        : subnameLabelTrimmed.length > 64
+          ? 'Label too long'
+          : isLabelHashLike(subnameLabelTrimmed)
+            ? 'Use a readable name (e.g. company, acme), not a hash'
+            : null
 
   const treeReady = Boolean(sourceTree && previewTree)
 
@@ -95,7 +115,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     const out: { value: string; label: string }[] = []
     const walk = (node: TreeNode) => {
       if (getDisplayClass(node) === 'Company') {
-        const label = (node.texts?.label ?? node.texts?.name ?? node.name) || node.name
+        const label = (node.texts?.label ?? node.texts?.['display-name'] ?? node.texts?.name ?? node.name) || node.name
         out.push({ value: node.name, label: String(label) })
       }
       node.children?.forEach(walk)
@@ -122,6 +142,11 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
   }
 
   const handleCreate = () => {
+    if (subnameLabelError) return
+
+    const label = subnameLabelTrimmed
+    const fullName = `${label}.${selectedParent}`
+
     // Collect non-empty form values to merge into the primary node
     const schemaChanges: Record<string, any> = {}
     for (const [key, value] of Object.entries(formData)) {
@@ -130,10 +155,21 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
       }
     }
 
-    // Merge schema fields only into the first (primary) node
-    const augmentedNodes = nodes.map((node, i) =>
-      i === 0 ? { ...node, ...schemaChanges } : node,
-    )
+    // Canonical ontology fields (no legacy class/schema).
+    // If a schema is selected, write sem:type, sem:schema, sem:schemaVersion into the pending creation.
+    if (activeSchema?.class) {
+      const typeUri = getTypeUriForDisplayClass(activeSchema.class)
+      if (typeUri) {
+        schemaChanges['sem:type'] = typeUri
+        schemaChanges['sem:schema'] = String(activeSchema.id)
+        schemaChanges['sem:schemaVersion'] =
+          activeSchema.version ?? getSchemaVersionForNode({ texts: { 'sem:type': typeUri } })
+      }
+    }
+
+    // Build node with user-entered readable label (never use hash-like names)
+    const primaryNode = { ...nodes[0], name: fullName, ...schemaChanges }
+    const augmentedNodes = nodes.map((_, i) => (i === 0 ? primaryNode : nodes[i]))
 
     queueCreation(selectedParent, augmentedNodes)
     onClose()
@@ -208,6 +244,31 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             <>
             {/* Form */}
             <div className="flex-1 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {/* Subname label — human-readable only (no hashes) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Subname label <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={subnameLabel}
+                  onChange={(e) => setSubnameLabel(e.target.value)}
+                  placeholder="e.g. company, acme, myorg"
+                  className={`w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                    subnameLabelError
+                      ? 'border-red-500 dark:border-red-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  autoComplete="off"
+                />
+                {subnameLabelError && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400">{subnameLabelError}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  One word, readable name. ENS will create: <span className="font-mono">{subnameLabelTrimmed || '…'}.{selectedParent || '…'}</span>
+                </p>
+              </div>
+
               {/* Parent Node Combobox */}
               <div ref={parentDropdownRef} className="relative">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -313,7 +374,8 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
               </button>
               <button
                 onClick={handleCreate}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors cursor-pointer"
+                disabled={!!subnameLabelError}
+                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 Create Node
               </button>
@@ -324,35 +386,46 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
         </Drawer.Content>
       </Drawer.Portal>
 
-      {/* Discard Changes Confirmation Dialog */}
-      {showDiscardDialog && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      {/* Discard confirmation: portaled to body so it's above the drawer and receives clicks immediately */}
+      {showDiscardDialog &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <div
-            className="absolute inset-0 bg-black/50"
-            onClick={handleCancelDiscard}
-            aria-hidden="true"
-          />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-              Are you sure you want to discard your changes?
-            </h3>
-            <div className="flex gap-3">
-              <button
-                onClick={handleCancelDiscard}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-              >
-                No, continue editing
-              </button>
-              <button
-                onClick={handleConfirmDiscard}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
-              >
-                Yes, discard
-              </button>
+            className="fixed inset-0 z-[1000] flex items-center justify-center pointer-events-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="discard-dialog-title-create"
+          >
+            <div
+              className="absolute inset-0 bg-black/50 pointer-events-auto"
+              onClick={handleCancelDiscard}
+              aria-hidden="true"
+            />
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 dark:border-gray-700">
+              <h3 id="discard-dialog-title-create" className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                Are you sure you want to discard your changes?
+              </h3>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelDiscard}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  No, continue editing
+                </button>
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={handleConfirmDiscard}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Yes, discard
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </Drawer.Root>
   )
 }

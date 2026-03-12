@@ -14,6 +14,11 @@ import { ExternalActionButton } from './ExternalActionButton'
 import { NodeContainer } from './NodeContainer'
 import { NodeIcon } from './NodeIcon'
 
+function isLabelhashPlaceholderName(name: string): boolean {
+  // ENS subgraph can emit placeholder names like "[<labelhash>].parent.eth" when it doesn't know the plaintext label.
+  return /^\[[0-9a-fA-F]{64}\]\./.test(name)
+}
+
 interface DomainTreeNodeData {
   [key: string]: unknown
   node: TreeNode
@@ -58,8 +63,13 @@ export const BaseNodeCard = ({
   const config = configOverride ? { ...baseConfig, ...configOverride } : baseConfig
 
   const Icon = config.icon
-  const displayName = node.name.split('.')[0]
-  const ensUrl = ensLink(node.name, chainId)
+  const primaryTitle =
+    node.texts?.['display-name'] ??
+    node.texts?.label ??
+    node.texts?.name ??
+    node.name.split('.')[0]
+  const hasPlaceholderName = isLabelhashPlaceholderName(node.name)
+  const ensUrl = hasPlaceholderName ? null : ensLink(node.name, chainId)
   const addressUrl = node.address ? explorerLink(node.address, chainId) : null
   const managerUrl = explorerLink(node.owner, chainId)
 
@@ -116,7 +126,7 @@ export const BaseNodeCard = ({
         />
         <div className="flex-1 min-w-0">
           <div className="text-base font-semibold text-gray-900 truncate text-left flex items-center gap-2">
-            {displayName}
+            {String(primaryTitle)}
             {config.badgeLabel && (
               <span
                 className={`px-2 py-0.5 text-xs font-bold ${config.badgeBg} ${config.badgeText} rounded flex-shrink-0`}
@@ -127,11 +137,13 @@ export const BaseNodeCard = ({
           </div>
           <div className="text-sm text-blue-700 truncate flex items-center gap-1.5">
             <span className="truncate">{node.name}</span>
-            <ExternalActionButton
-              url={ensUrl}
-              label={`Open ${node.name} in ENS app (new tab)`}
-              className="hover:bg-blue-100"
-            />
+            {ensUrl ? (
+              <ExternalActionButton
+                url={ensUrl}
+                label={`Open ${node.name} in ENS app (new tab)`}
+                className="hover:bg-blue-100"
+              />
+            ) : null}
           </div>
         </div>
         {hasChildren && (

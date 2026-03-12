@@ -2,14 +2,13 @@
 import type { Schema } from "../types";
 
 export const DELEGATE_SCHEMA: Schema = {
-  $id: 'https://schemas.agentictrust.io/delegate-node/v1.0.1/schema.json',
+  $id: 'https://schemas.agentictrust.io/delegate-node/v2.0.1/schema.json',
   source: 'https://schemas.agentictrust.io/',
   title: 'Delegate',
-  version: '1.0.1',
+  version: '2.0.1',
   description: 'A delegate.',
   type: 'object' as const,
   properties: {
-    class: { type: 'string', description: 'High-level identifier of this node type', default: 'Delegate' },
     address: { type: 'string', description: 'The address of the delegate', format: 'address' },
     'legal-name': { type: 'string', description: 'The full legal or preferred name of the delegate (e.g. "John Doe")' },
     'display-name': { type: 'string', description: 'A canonical display name for the delegate' },
@@ -22,6 +21,5 @@ export const DELEGATE_SCHEMA: Schema = {
     '^conflict-of-interest(\[[^\]]+\])?$': { type: 'string', description: 'Conflict of interest declaration per organization (e.g. conflict-of-interest[dao.eth])' },
     '^forum-handle(\[[^\]]+\])?$': { type: 'string', description: 'Forum handle per organization (e.g. forum-handle[dao.eth])' },
   },
-  required: ['class'],
   recommended: ['address', 'display-name', 'statement', 'conflict-of-interest', 'forum-handle']
 };

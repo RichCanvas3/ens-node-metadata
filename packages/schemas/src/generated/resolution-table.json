@@ -3,78 +3,78 @@
     "https://ontology.agentictrust.io/OrganizationNode": {
       "displayClass": "Org",
       "defaultSchemaUri": "https://schemas.agentictrust.io/org-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/org-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/org-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "org"
     },
     "https://ontology.agentictrust.io/AIAgentNode": {
       "displayClass": "AIAgent",
       "defaultSchemaUri": "https://schemas.agentictrust.io/agent-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/agent-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/agent-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "agent"
     },
     "https://ontology.agentictrust.io/ApplicationNode": {
       "displayClass": "Application",
       "defaultSchemaUri": "https://schemas.agentictrust.io/application-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/application-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/application-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "application"
     },
     "https://ontology.agentictrust.io/ContractNode": {
       "displayClass": "Contract",
       "defaultSchemaUri": "https://schemas.agentictrust.io/contract-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/contract-node/v1.1.1/schema.json",
-      "schemaVersion": "1.1.1",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/contract-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "contract"
     },
     "https://ontology.agentictrust.io/DelegateNode": {
       "displayClass": "Delegate",
       "defaultSchemaUri": "https://schemas.agentictrust.io/delegate-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/delegate-node/v1.0.1/schema.json",
-      "schemaVersion": "1.0.1",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/delegate-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "delegate"
     },
     "https://ontology.agentictrust.io/GrantNode": {
       "displayClass": "Grant",
       "defaultSchemaUri": "https://schemas.agentictrust.io/grant-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/grant-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/grant-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "grant"
     },
     "https://ontology.agentictrust.io/GroupNode": {
       "displayClass": "Group",
       "defaultSchemaUri": "https://schemas.agentictrust.io/group-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/group-node/v0.1.4/schema.json",
-      "schemaVersion": "0.1.4",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/group-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "group"
     },
     "https://ontology.agentictrust.io/CompanyNode": {
       "displayClass": "Company",
       "defaultSchemaUri": "https://schemas.agentictrust.io/company-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/company-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/company-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "company"
     },
     "https://ontology.agentictrust.io/PersonNode": {
       "displayClass": "Person",
       "defaultSchemaUri": "https://schemas.agentictrust.io/person-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/person-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/person-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "person"
     },
     "https://ontology.agentictrust.io/TreasuryNode": {
       "displayClass": "Treasury",
       "defaultSchemaUri": "https://schemas.agentictrust.io/treasury-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/treasury-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/treasury-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "treasury"
     },
     "https://ontology.agentictrust.io/WalletNode": {
       "displayClass": "Wallet",
       "defaultSchemaUri": "https://schemas.agentictrust.io/wallet-node.json",
-      "versionedSchemaUri": "https://schemas.agentictrust.io/wallet-node/v1.0.0/schema.json",
-      "schemaVersion": "1.0.0",
+      "versionedSchemaUri": "https://schemas.agentictrust.io/wallet-node/v2.0.1/schema.json",
+      "schemaVersion": "2.0.1",
       "schemaId": "wallet"
     }
   },

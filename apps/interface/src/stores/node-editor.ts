@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getVersionedSchemaUriForNode } from '@ens-node-metadata/schemas'
+import { getTypeUriForDisplayClass, getVersionedSchemaUriForNode } from '@ens-node-metadata/schemas'
 
 type NodeEditFormData = Record<string, any>
 
@@ -79,12 +79,6 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       ? schemas.find((s: any) => s.id === nodeSchemaId)
       : null
 
-    // Add schema and type to form data ONLY if the node already has a schema
-    if (nodeSchemaId && activeSchema) {
-      nextFormData.schema = activeSchema.id
-      nextFormData.class = activeSchema.class
-    }
-
     // Initialize from node data and schema properties ONLY if node has a schema
     if (nodeSchemaId && activeSchema?.properties) {
       Object.entries(activeSchema.properties).forEach(([key, prop]: [string, any]) => {
@@ -132,8 +126,6 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     set((state) => {
       const nextFormData: NodeEditFormData = {
         ...state.formData,
-        schema: schema.id,
-        class: schema.class,
       }
 
       // Track optional fields that already have values
@@ -219,12 +211,11 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
   getFormData: () => get().formData,
 
   hasChanges: (originalNode, activeSchema) => {
-    const { formData } = get()
+    const { formData, currentSchemaId } = get()
 
-    // Check schema and type changes
-    const schemaTypeChanges =
-      formData.schema !== resolveNodeValue(originalNode, 'schema') ||
-      formData.class !== resolveNodeValue(originalNode, 'class')
+    // Check schema selection change (drives sem:* fields on save/publish)
+    const schemaSelectionChanges =
+      (currentSchemaId ?? null) !== (getVersionedSchemaUriForNode(originalNode) ?? null)
 
     // Check schema properties for changes
     const schemaChanges = Object.entries(activeSchema?.properties ?? {}).some(([key]) => {
@@ -235,9 +226,6 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
 
     // Check extra text records for changes (including cleared ones)
     const extraChanges = Object.keys(formData).some((key) => {
-      // Skip schema and type as we already checked them
-      if (key === 'schema' || key === 'class') return false
-
       const schemaKeys = new Set(Object.keys(activeSchema?.properties ?? {}))
       if (schemaKeys.has(key)) return false // Already checked above
 
@@ -246,7 +234,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       return currentValue !== originalValue
     })
 
-    return schemaTypeChanges || schemaChanges || extraChanges
+    return schemaSelectionChanges || schemaChanges || extraChanges
   },
 
   getChangedFields: (originalNode, activeSchema) => {
@@ -265,6 +253,25 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       } else {
         changes[key] = value
       }
+    }
+
+    // Enforce canonical ontology fields based on selected schema.
+    // (No legacy class/schema; only sem:type, sem:schema, sem:schemaVersion.)
+    if (activeSchema?.class) {
+      const desiredTypeUri = getTypeUriForDisplayClass(activeSchema.class)
+      const desiredSchemaUri = String(activeSchema.id)
+      const desiredSchemaVersion = String(activeSchema.version)
+
+      if (desiredTypeUri) {
+        const originalType = resolveNodeValue(originalNode, 'sem:type')
+        if (originalType !== desiredTypeUri) changes['sem:type'] = desiredTypeUri
+      }
+
+      const originalSchema = resolveNodeValue(originalNode, 'sem:schema')
+      if (originalSchema !== desiredSchemaUri) changes['sem:schema'] = desiredSchemaUri
+
+      const originalVersion = resolveNodeValue(originalNode, 'sem:schemaVersion')
+      if (originalVersion !== desiredSchemaVersion) changes['sem:schemaVersion'] = desiredSchemaVersion
     }
 
     return { changes, deleted }

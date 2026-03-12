@@ -11,6 +11,10 @@ import { resolveLink } from '@/lib/links'
 import { NodeIcon } from './NodeIcon'
 import { ExternalActionButton } from './ExternalActionButton'
 
+function isLabelhashPlaceholderName(name: string): boolean {
+  return /^\[[0-9a-fA-F]{64}\]\./.test(name)
+}
+
 interface DomainTreeNodeData {
   [key: string]: unknown
   node: TreeNode
@@ -44,7 +48,11 @@ const SignerNodeCard = ({
   onToggleCollapse,
   childrenCount = 0,
 }: SignerNodeProps) => {
-  const displayName = node.name.split('.')[0]
+  const displayName =
+    node.texts?.['display-name'] ??
+    node.texts?.label ??
+    node.texts?.name ??
+    node.name.split('.')[0]
   const ensName = (node as any).ensName
   const ensAvatar = (node as any).ensAvatar
 
@@ -54,7 +62,7 @@ const SignerNodeCard = ({
   const isPendingCreation = node.isPendingCreation || false
 
   // Resolve the appropriate link for this node
-  const link = resolveLink(node, chainId)
+  const link = isLabelhashPlaceholderName(node.name) ? null : resolveLink(node, chainId)
 
   return (
     <NodeContainer
@@ -124,11 +132,13 @@ const SignerNodeCard = ({
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-mono text-xs truncate flex items-center gap-1.5">
             <span className="truncate">{ensName || displayName}</span>
-            <ExternalActionButton
-              url={link.url}
-              label={`${link.label} (new tab)`}
-              className="hover:bg-indigo-200"
-            />
+            {link ? (
+              <ExternalActionButton
+                url={link.url}
+                label={`${link.label} (new tab)`}
+                className="hover:bg-indigo-200"
+              />
+            ) : null}
           </span>
         </div>
       </div>

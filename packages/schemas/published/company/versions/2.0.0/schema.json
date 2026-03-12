@@ -1,0 +1,36 @@
+{
+  "$id": "https://schemas.agentictrust.io/company-node/v2.0.0/schema.json",
+  "source": "https://schemas.agentictrust.io/",
+  "title": "Company",
+  "version": "2.0.0",
+  "description": "A company; is-a Organization.",
+  "type": "object",
+  "properties": {
+    "display-name": {
+      "type": "string",
+      "description": "Display name for the company (distinct from ENS path)"
+    },
+    "avatar": {
+      "type": "string",
+      "description": "A URL to an image used as an avatar or logo"
+    },
+    "description": {
+      "type": "string",
+      "description": "A description of the company"
+    },
+    "url": {
+      "type": "string",
+      "description": "URL of the company",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "class"
+  ],
+  "recommended": [
+    "display-name",
+    "avatar",
+    "description",
+    "url"
+  ]
+}

@@ -22,7 +22,6 @@ const SEM_SCHEMA_KEYS = ['sem:schema', 'sem\\:schema'] as const
 
 export interface NodeLike {
   texts?: Record<string, string | null | undefined> | null
-  class?: string | null
 }
 
 /**
@@ -117,9 +116,27 @@ export function getSchemaUriForNode(node: NodeLike): string | undefined {
  */
 export function getVersionedSchemaUriForNode(node: NodeLike): string | undefined {
   const explicitSchema = getSchemaUriFromNode(node)
-  if (explicitSchema) return explicitSchema
+  if (explicitSchema) {
+    // If sem:schema is a stable alias (not a pinned version), prefer the ontology-mapped versioned schema.
+    const typeUri = getTypeUri(node)
+    const entry = typeUri ? byTypeUri[typeUri] : undefined
+    if (entry?.defaultSchemaUri && explicitSchema === entry.defaultSchemaUri) {
+      return entry.versionedSchemaUri
+    }
+    return explicitSchema
+  }
   const typeUri = getTypeUri(node)
   if (!typeUri) return undefined
   const entry = byTypeUri[typeUri]
   return entry?.versionedSchemaUri
+}
+
+/**
+ * Get the schema version for the node (e.g. "1.0.0").
+ * Derived from sem:type (ontology mapping). If sem:schema is pinned, callers should still treat this as a convenience value.
+ */
+export function getSchemaVersionForNode(node: NodeLike): string | undefined {
+  const typeUri = getTypeUri(node)
+  if (!typeUri) return undefined
+  return byTypeUri[typeUri]?.schemaVersion
 }
