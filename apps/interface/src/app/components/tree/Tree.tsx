@@ -18,6 +18,7 @@ import { getDisplayClass } from '@ens-node-metadata/schemas'
 import type { TreeNode } from '@/lib/tree/types'
 import { DefaultNode, TreasuryNode, SignerNode, BaseNode } from './nodes'
 import { ReferenceEdge } from './edges/ReferenceEdge'
+import { AssociationEdge } from './edges/AssociationEdge'
 
 const MIN_ZOOM = 0.3
 const MAX_ZOOM = 2
@@ -94,6 +95,12 @@ const layoutTree = (
   const layoutEdges: Array<{ source: string; target: string }> = []
   const nodeById = new Map<string, TreeNode>()
 
+  const ASSOCIATION_KEYS: Record<string, { label: string; color: string }> = {
+    'managed-by': { label: 'managed by', color: '#8b5cf6' },
+  }
+
+  const associationCandidates: Array<{ source: string; key: string; target: string }> = []
+
   const walk = (node: TreeNode, parentId?: string) => {
     nodeById.set(node.name, node)
     // Use the node's type field if available, otherwise default
@@ -145,6 +152,13 @@ const layoutTree = (
       }
     }
 
+    // Collect cross-node association edges (drawn in a second pass once we know all node ids)
+    for (const key of Object.keys(ASSOCIATION_KEYS)) {
+      const targetName = node.texts?.[key]
+      if (!targetName || typeof targetName !== 'string') continue
+      associationCandidates.push({ source: node.name, key, target: targetName })
+    }
+
     if (collapsedNodes.has(node.name)) return
 
     const sortedChildren = [...(node.children ?? [])].sort((a, b) => a.name.localeCompare(b.name))
@@ -154,6 +168,21 @@ const layoutTree = (
   }
 
   walk(root)
+
+  // Add association edges after we know all nodes exist (avoids traversal-order issues)
+  for (const { source, key, target } of associationCandidates) {
+    if (!nodeById.has(source) || !nodeById.has(target)) continue
+    if (source === target) continue
+    const meta = ASSOCIATION_KEYS[key]
+    edges.push({
+      id: `edge-assoc-${source}-${key}-${target}`,
+      source,
+      target,
+      type: 'association',
+      animated: true,
+      data: { label: meta.label, color: meta.color },
+    })
+  }
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -198,6 +227,7 @@ const nodeTypes = {
 
 const edgeTypes = {
   reference: ReferenceEdge,
+  association: AssociationEdge,
 }
 
 interface Props {
@@ -317,7 +347,12 @@ export function Tree({ data }: Props) {
       while (queue.length > 0) {
         const current = queue.shift()!
         const children = edges
-          .filter((e) => e.source === current && !e.id.startsWith('edge-ref-'))
+          .filter(
+            (e) =>
+              e.source === current &&
+              !e.id.startsWith('edge-ref-') &&
+              !e.id.startsWith('edge-assoc-'),
+          )
           .map((e) => e.target)
         for (const child of children) {
           descendants.push(child)

@@ -18,6 +18,18 @@ import {
 import { type TreeNode } from '@/lib/tree/types'
 import { fetchTexts } from '@/lib/tree/fetchTexts'
 
+function isLabelhashPlaceholderName(name: string): boolean {
+  return /^\[[0-9a-fA-F]{64}\]\./.test(name)
+}
+
+function displayEnsName(name: string, texts?: Record<string, string | null> | null): string {
+  if (!isLabelhashPlaceholderName(name)) return name
+  const label = texts?.label
+  if (!label) return name
+  const rest = name.replace(/^\[[0-9a-fA-F]{64}\]\./, '')
+  return `${label}.${rest}`
+}
+
 const ONTOLOGY_TEXT_KEYS = [
   'sem:type',
   'sem:schema',
@@ -309,7 +321,14 @@ export function EditNodeDrawer() {
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                 ENS name is fixed and cannot be edited.
                 {nodeWithEdits?.name ? (
-                  <span className="block font-mono break-all mt-1">{nodeWithEdits.name}</span>
+                  <span className="block font-mono break-all mt-1">
+                    {displayEnsName(nodeWithEdits.name, nodeWithEdits.texts ?? null)}
+                    {isLabelhashPlaceholderName(nodeWithEdits.name) && !nodeWithEdits.texts?.label ? (
+                      <span className="block text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                        This is a subgraph placeholder (labelhash). Add a `label` text record (e.g. `aiagent-v3`) to display the human ENS name.
+                      </span>
+                    ) : null}
+                  </span>
                 ) : null}
               </p>
               <Drawer.Description className="sr-only">{nodeWithEdits?.name}</Drawer.Description>

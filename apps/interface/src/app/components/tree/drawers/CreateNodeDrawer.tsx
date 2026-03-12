@@ -167,6 +167,10 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
       }
     }
 
+    // Store the DNS label explicitly so we can render a human ENS name even when the subgraph only has labelhash.
+    // (On-chain ENS does not store plaintext labels; without this we cannot recover "aiagent-v3" from "[<hash>].parent".)
+    if (!schemaChanges.label) schemaChanges.label = label
+
     // Build node with user-entered readable label (never use hash-like names)
     const primaryNode = { ...nodes[0], name: fullName, ...schemaChanges }
     const augmentedNodes = nodes.map((_, i) => (i === 0 ? primaryNode : nodes[i]))

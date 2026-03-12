@@ -19,6 +19,16 @@ function isLabelhashPlaceholderName(name: string): boolean {
   return /^\[[0-9a-fA-F]{64}\]\./.test(name)
 }
 
+function displayEnsName(node: TreeNode): string {
+  const n = node.name
+  if (!isLabelhashPlaceholderName(n)) return n
+  const label = node.texts?.label
+  if (!label) return n
+  // Replace "[<labelhash>]." prefix with the stored plaintext label.
+  const rest = n.replace(/^\[[0-9a-fA-F]{64}\]\./, '')
+  return `${label}.${rest}`
+}
+
 interface DomainTreeNodeData {
   [key: string]: unknown
   node: TreeNode
@@ -69,6 +79,7 @@ export const BaseNodeCard = ({
     node.texts?.name ??
     node.name.split('.')[0]
   const hasPlaceholderName = isLabelhashPlaceholderName(node.name)
+  const shownEnsName = displayEnsName(node)
   const ensUrl = hasPlaceholderName ? null : ensLink(node.name, chainId)
   const addressUrl = node.address ? explorerLink(node.address, chainId) : null
   const managerUrl = explorerLink(node.owner, chainId)
@@ -136,7 +147,7 @@ export const BaseNodeCard = ({
             )}
           </div>
           <div className="text-sm text-blue-700 truncate flex items-center gap-1.5">
-            <span className="truncate">{node.name}</span>
+            <span className="truncate">{shownEnsName}</span>
             {ensUrl ? (
               <ExternalActionButton
                 url={ensUrl}
